@@ -78,9 +78,28 @@ Docker, a PaaS, etc). The suggested subdomain layout:
 Each frontend's `VITE_API_URL` should point to `https://back.takhayir.com/api` in production
 (set in `.env` before running `npm run build`).
 
-### Example nginx reverse proxy for the API
+### DNS
+
+All four hostnames should point at the app server via `A` records:
+
+| Host | Type | Value |
+|---|---|---|
+| `www.takhayir.com` | A | `72.62.154.75` |
+| `back.takhayir.com` | A | `72.62.154.75` |
+| `admin.takhayir.com` | A | `72.62.154.75` |
+| `vendor.takhayir.com` | A | `72.62.154.75` |
+
+(All four pointing at the same server is fine — nginx/your reverse proxy routes by hostname to
+the right app, per the config below. If the storefront, admin, and vendor panels end up hosted
+separately later, just repoint the individual `A`/`CNAME` record.)
+
+### Example nginx config (single server, all four subdomains)
+
+All four hostnames resolve to the same box (`72.62.154.75`), so one nginx install can serve
+all of them — the API as a reverse proxy, the three frontends as static files.
 
 ```nginx
+# Backend API
 server {
     listen 443 ssl;
     server_name back.takhayir.com;
@@ -92,10 +111,40 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 }
+
+# Storefront
+server {
+    listen 443 ssl;
+    server_name www.takhayir.com takhayir.com;
+    root /var/www/takhayir/storefront/dist;
+    index index.html;
+    location / { try_files $uri $uri/ /index.html; }
+}
+
+# Admin panel
+server {
+    listen 443 ssl;
+    server_name admin.takhayir.com;
+    root /var/www/takhayir/admin-panel/dist;
+    index index.html;
+    location / { try_files $uri $uri/ /index.html; }
+}
+
+# Vendor panel
+server {
+    listen 443 ssl;
+    server_name vendor.takhayir.com;
+    root /var/www/takhayir/vendor-panel/dist;
+    index index.html;
+    location / { try_files $uri $uri/ /index.html; }
+}
 ```
 
-The other three subdomains just serve static files from each app's `dist/` folder after
-`npm run build`.
+Deploy flow per frontend: `npm run build` locally (or on the server) with `VITE_API_URL` set to
+`https://back.takhayir.com/api`, then copy that app's `dist/` folder to the path referenced in
+its `root` directive above. Run the backend with a process manager (PM2, systemd, or the provided
+`backend/Dockerfile`) on port 4000, and issue TLS certs for all four hostnames (e.g. via certbot)
+before switching these `server` blocks to `listen 443 ssl`.
 
 ### Swagger
 
