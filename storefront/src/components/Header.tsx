@@ -19,7 +19,7 @@ export function Header() {
     <header style={{ background: '#fff', borderBottom: '1px solid var(--border-color)', position: 'sticky', top: 0, zIndex: 20 }}>
       <div className="container" style={{ display: 'flex', alignItems: 'center', gap: 24, padding: '14px 20px' }}>
         <Link to="/">
-          <Logo size={30} />
+          <Logo size={42} />
         </Link>
 
         <form onSubmit={handleSearch} style={{ flex: 1, maxWidth: 480 }}>

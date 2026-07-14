@@ -29,7 +29,7 @@ export default function LoginPage() {
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-page)' }}>
       <div style={{ width: 380 }}>
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24 }}>
-          <Logo size={36} />
+          <Logo size={64} />
         </div>
         <form onSubmit={handleSubmit} className="card" style={{ padding: 28 }}>
           <h1 style={{ fontSize: 18, marginBottom: 20 }}>Vendor sign in</h1>

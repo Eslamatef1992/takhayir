@@ -28,7 +28,7 @@ export default function RegisterPage() {
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-page)', padding: '40px 0' }}>
       <div style={{ width: 420 }}>
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24 }}>
-          <Logo size={36} />
+          <Logo size={64} />
         </div>
         <form onSubmit={handleSubmit} className="card" style={{ padding: 28 }}>
           <h1 style={{ fontSize: 18, marginBottom: 4 }}>Start selling on Takhayir</h1>
