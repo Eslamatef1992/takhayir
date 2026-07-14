@@ -32,13 +32,19 @@ export default function ProductListPage({ mode }: { mode: 'category' | 'search' 
 
   return (
     <div>
-      <h1 style={{ fontSize: 20, marginBottom: 20 }}>{title}</h1>
+      <h1 style={{ marginBottom: 20, wordBreak: 'break-word' }}>{title}</h1>
       {loading ? (
-        <div className="spinner">Loading...</div>
+        <div className="grid-products">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="skeleton" style={{ aspectRatio: '3 / 4' }} />
+          ))}
+        </div>
       ) : products.length === 0 ? (
-        <p className="text-muted">No products found.</p>
+        <div className="card" style={{ padding: 40, textAlign: 'center' }}>
+          <p className="text-muted">No products found.</p>
+        </div>
       ) : (
-        <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))' }}>
+        <div className="grid-products">
           {products.map((p) => (
             <ProductCard key={p.id} product={p} />
           ))}

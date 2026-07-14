@@ -74,7 +74,7 @@ export default function ProductPage() {
 
   return (
     <div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 32 }}>
+      <div className="split-2">
         <div>
           <div className="card" style={{ aspectRatio: '1/1', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
             {imageUrl ? (

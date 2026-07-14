@@ -27,10 +27,19 @@ export default function OrdersPage() {
 
   return (
     <div>
-      <h1 style={{ fontSize: 20, marginBottom: 20 }}>My orders</h1>
-      {orders.length === 0 && <p className="text-muted">You haven't placed any orders yet.</p>}
+      <h1 style={{ marginBottom: 20 }}>My orders</h1>
+      {orders.length === 0 && (
+        <div className="card" style={{ padding: 40, textAlign: 'center' }}>
+          <p className="text-muted">You haven't placed any orders yet.</p>
+        </div>
+      )}
       {orders.map((o) => (
-        <Link key={o.id} to={`/orders/${o.id}`} className="card" style={{ display: 'flex', justifyContent: 'space-between', padding: 16, marginBottom: 12 }}>
+        <Link
+          key={o.id}
+          to={`/orders/${o.id}`}
+          className="card"
+          style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, padding: 18, marginBottom: 12 }}
+        >
           <div>
             <div style={{ fontWeight: 700 }}>{o.order_number}</div>
             <div className="text-muted" style={{ fontSize: 12 }}>{new Date(o.created_at).toLocaleDateString()}</div>

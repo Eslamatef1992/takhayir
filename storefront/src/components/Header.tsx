@@ -1,84 +1,184 @@
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Logo } from './Logo';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import { apiClient, ApiEnvelope } from '../api/client';
+import { CartIcon, CloseIcon, HeartIcon, MenuIcon, SearchIcon, StoreIcon, UserIcon } from './Icons';
+
+interface Category {
+  id: number;
+  name: string;
+  slug: string;
+}
 
 export function Header() {
   const { user, logout } = useAuth();
   const { itemCount } = useCart();
   const navigate = useNavigate();
   const [q, setQ] = useState('');
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  useEffect(() => {
+    apiClient
+      .get<ApiEnvelope<Category[]>>('/categories', { params: { flat: true } })
+      .then((res) => setCategories(res.data.data.slice(0, 8)))
+      .catch(() => undefined);
+  }, []);
+
+  useEffect(() => {
+    document.body.style.overflow = menuOpen ? 'hidden' : '';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [menuOpen]);
 
   function handleSearch(e: FormEvent) {
     e.preventDefault();
+    setMenuOpen(false);
     navigate(`/search?q=${encodeURIComponent(q)}`);
   }
 
   return (
-    <header style={{ background: '#fff', borderBottom: '1px solid var(--border-color)', position: 'sticky', top: 0, zIndex: 20 }}>
-      <div className="container" style={{ display: 'flex', alignItems: 'center', gap: 24, padding: '14px 20px' }}>
+    <header className="site-header">
+      <div className="announce-bar">Shop from every vendor on Takhayir — one cart, endless stores.</div>
+
+      <div className="header-inner">
+        <button className="mobile-menu-btn" aria-label="Open menu" onClick={() => setMenuOpen(true)}>
+          <MenuIcon />
+        </button>
+
         <Link to="/">
-          <Logo size={42} />
+          <Logo size={40} />
         </Link>
 
-        <form onSubmit={handleSearch} style={{ flex: 1, maxWidth: 480 }}>
+        <form onSubmit={handleSearch} className="header-search">
+          <SearchIcon size={17} />
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search products, categories, stores..."
-            style={{ width: '100%' }}
           />
         </form>
 
-        <nav style={{ display: 'flex', alignItems: 'center', gap: 18, marginLeft: 'auto' }}>
-          <Link to="/vendors" className="text-muted" style={{ fontSize: 14, fontWeight: 600 }}>
+        <nav className="header-nav">
+          <Link to="/vendors" className="nav-text-link text-muted" style={{ fontSize: 14, fontWeight: 600 }}>
             Stores
           </Link>
-          <Link to="/wishlist" className="text-muted" style={{ fontSize: 14, fontWeight: 600 }}>
-            Wishlist
+
+          <Link to="/wishlist" className="icon-link hide-mobile" aria-label="Wishlist">
+            <HeartIcon size={21} />
           </Link>
-          <Link to="/cart" style={{ fontSize: 14, fontWeight: 700, position: 'relative' }}>
-            Cart
-            {itemCount > 0 && (
-              <span
-                style={{
-                  position: 'absolute',
-                  top: -10,
-                  right: -16,
-                  background: 'var(--brand-magenta)',
-                  color: '#fff',
-                  borderRadius: 10,
-                  fontSize: 11,
-                  padding: '1px 6px'
-                }}
-              >
-                {itemCount}
-              </span>
-            )}
+
+          <Link to="/cart" className="icon-link" aria-label="Cart">
+            <CartIcon size={21} />
+            {itemCount > 0 && <span className="cart-badge">{itemCount}</span>}
           </Link>
 
           {user ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div className="hide-mobile" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <Link to="/orders" className="text-muted" style={{ fontSize: 14, fontWeight: 600 }}>
                 My Orders
               </Link>
-              <button className="btn btn-outline" onClick={logout}>
+              <button className="btn btn-outline btn-sm" onClick={logout}>
                 Log out
               </button>
             </div>
           ) : (
-            <div style={{ display: 'flex', gap: 8 }}>
-              <Link to="/login" className="btn btn-outline">
+            <div className="hide-mobile" style={{ display: 'flex', gap: 8 }}>
+              <Link to="/login" className="btn btn-outline btn-sm">
                 Log in
               </Link>
-              <Link to="/register" className="btn btn-primary">
+              <Link to="/register" className="btn btn-primary btn-sm">
                 Sign up
               </Link>
             </div>
           )}
         </nav>
       </div>
+
+      {categories.length > 0 && (
+        <div className="category-strip hide-mobile">
+          {categories.map((c) => (
+            <Link key={c.id} to={`/categories/${c.slug}`}>
+              {c.name}
+            </Link>
+          ))}
+        </div>
+      )}
+
+      {menuOpen && (
+        <div className="mobile-drawer" onClick={() => setMenuOpen(false)}>
+          <div className="mobile-drawer-panel" onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+              <Logo size={32} />
+              <button aria-label="Close menu" onClick={() => setMenuOpen(false)} style={{ background: 'none', border: 'none' }}>
+                <CloseIcon />
+              </button>
+            </div>
+
+            <form onSubmit={handleSearch} className="header-search" style={{ display: 'block', maxWidth: 'none', margin: '8px 0 4px' }}>
+              <SearchIcon size={17} />
+              <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search Takhayir..." />
+            </form>
+
+            {!user && (
+              <div style={{ display: 'flex', gap: 8, margin: '12px 0' }}>
+                <Link to="/login" className="btn btn-outline btn-block" onClick={() => setMenuOpen(false)}>
+                  Log in
+                </Link>
+                <Link to="/register" className="btn btn-primary btn-block" onClick={() => setMenuOpen(false)}>
+                  Sign up
+                </Link>
+              </div>
+            )}
+
+            <Link to="/vendors" className="mobile-drawer-link" onClick={() => setMenuOpen(false)}>
+              <StoreIcon size={18} /> &nbsp;All stores
+            </Link>
+            <Link to="/wishlist" className="mobile-drawer-link" onClick={() => setMenuOpen(false)}>
+              <HeartIcon size={18} /> &nbsp;Wishlist
+            </Link>
+            {user && (
+              <Link to="/orders" className="mobile-drawer-link" onClick={() => setMenuOpen(false)}>
+                <UserIcon size={18} /> &nbsp;My orders
+              </Link>
+            )}
+
+            {categories.length > 0 && (
+              <>
+                <div className="text-faint" style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', marginTop: 16, marginBottom: 4 }}>
+                  Categories
+                </div>
+                {categories.map((c) => (
+                  <Link
+                    key={c.id}
+                    to={`/categories/${c.slug}`}
+                    className="mobile-drawer-link"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    {c.name}
+                  </Link>
+                ))}
+              </>
+            )}
+
+            {user && (
+              <button
+                className="btn btn-outline btn-block"
+                style={{ marginTop: 16 }}
+                onClick={() => {
+                  logout();
+                  setMenuOpen(false);
+                }}
+              >
+                Log out
+              </button>
+            )}
+          </div>
+        </div>
+      )}
     </header>
   );
 }

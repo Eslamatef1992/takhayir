@@ -80,7 +80,7 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 32 }}>
+    <div className="split-checkout">
       <div>
         <h1 style={{ fontSize: 20, marginBottom: 16 }}>Shipping address</h1>
         <div className="card" style={{ padding: 16, marginBottom: 16 }}>
