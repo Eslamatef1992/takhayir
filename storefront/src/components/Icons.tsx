@@ -71,6 +71,25 @@ export function ChevronRightIcon({ size, className }: IconProps) {
   );
 }
 
+export function ChevronDownIcon({ size, className }: IconProps) {
+  return (
+    <svg {...base(size)} className={className}>
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  );
+}
+
+export function GridIcon({ size, className }: IconProps) {
+  return (
+    <svg {...base(size)} className={className}>
+      <rect x="3" y="3" width="7" height="7" rx="1.5" />
+      <rect x="14" y="3" width="7" height="7" rx="1.5" />
+      <rect x="3" y="14" width="7" height="7" rx="1.5" />
+      <rect x="14" y="14" width="7" height="7" rx="1.5" />
+    </svg>
+  );
+}
+
 export function TruckIcon({ size, className }: IconProps) {
   return (
     <svg {...base(size)} className={className}>

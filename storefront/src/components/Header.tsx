@@ -4,12 +4,16 @@ import { Logo } from './Logo';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { apiClient, ApiEnvelope } from '../api/client';
-import { CartIcon, CloseIcon, HeartIcon, MenuIcon, SearchIcon, StoreIcon, UserIcon } from './Icons';
+import { CartIcon, ChevronDownIcon, CloseIcon, GridIcon, HeartIcon, MenuIcon, SearchIcon, StoreIcon, UserIcon } from './Icons';
 
 interface Category {
   id: number;
   name: string;
   slug: string;
+}
+
+interface CategoryNode extends Category {
+  children?: Category[];
 }
 
 export function Header() {
@@ -18,12 +22,19 @@ export function Header() {
   const navigate = useNavigate();
   const [q, setQ] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
+  const [megaOpen, setMegaOpen] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [categoryTree, setCategoryTree] = useState<CategoryNode[]>([]);
 
   useEffect(() => {
     apiClient
       .get<ApiEnvelope<Category[]>>('/categories', { params: { flat: true } })
       .then((res) => setCategories(res.data.data.slice(0, 8)))
+      .catch(() => undefined);
+
+    apiClient
+      .get<ApiEnvelope<CategoryNode[]>>('/categories')
+      .then((res) => setCategoryTree(res.data.data))
       .catch(() => undefined);
   }, []);
 
@@ -72,6 +83,48 @@ export function Header() {
           </Link>
         </nav>
       </div>
+
+      {categoryTree.length > 0 && (
+        <div className="mega-bar hide-mobile">
+          <div className="container mega-bar-row">
+            <div
+              className="mega-wrap"
+              onMouseEnter={() => setMegaOpen(true)}
+              onMouseLeave={() => setMegaOpen(false)}
+            >
+              <button className="mega-trigger" onClick={() => setMegaOpen((o) => !o)}>
+                <GridIcon size={16} /> Categories <ChevronDownIcon size={14} />
+              </button>
+
+              {megaOpen && (
+                <div className="mega-panel">
+                  {categoryTree.map((cat) => (
+                    <div key={cat.id} className="mega-col">
+                      <Link to={`/categories/${cat.slug}`} className="mega-col-title" onClick={() => setMegaOpen(false)}>
+                        {cat.name}
+                      </Link>
+                      {cat.children?.slice(0, 6).map((child) => (
+                        <Link
+                          key={child.id}
+                          to={`/categories/${child.slug}`}
+                          className="mega-col-link"
+                          onClick={() => setMegaOpen(false)}
+                        >
+                          {child.name}
+                        </Link>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <Link to="/vendors" className="mega-side-link">
+              All stores
+            </Link>
+          </div>
+        </div>
+      )}
 
       {menuOpen && (
         <div className="mobile-drawer" onClick={() => setMenuOpen(false)}>
