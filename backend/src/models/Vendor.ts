@@ -19,6 +19,7 @@ export interface VendorAttributes {
   status: VendorStatus;
   rejection_reason: string | null;
   rating_avg: number;
+  is_featured: boolean;
   created_at?: Date;
   updated_at?: Date;
 }
@@ -27,7 +28,7 @@ export type VendorCreationAttributes = Optional<
   VendorAttributes,
   | 'id' | 'store_logo' | 'store_banner' | 'description' | 'business_type'
   | 'tax_number' | 'registration_number' | 'iban' | 'commission_rate'
-  | 'status' | 'rejection_reason' | 'rating_avg'
+  | 'status' | 'rejection_reason' | 'rating_avg' | 'is_featured'
 >;
 
 export class Vendor extends Model<VendorAttributes, VendorCreationAttributes> implements VendorAttributes {
@@ -46,6 +47,7 @@ export class Vendor extends Model<VendorAttributes, VendorCreationAttributes> im
   public status!: VendorStatus;
   public rejection_reason!: string | null;
   public rating_avg!: number;
+  public is_featured!: boolean;
   public readonly created_at!: Date;
   public readonly updated_at!: Date;
 }
@@ -66,7 +68,8 @@ Vendor.init(
     commission_rate: { type: DataTypes.DECIMAL(5, 2), allowNull: false, defaultValue: 10.0 },
     status: { type: DataTypes.ENUM('pending', 'approved', 'suspended', 'rejected'), allowNull: false, defaultValue: 'pending' },
     rejection_reason: { type: DataTypes.STRING(500), allowNull: true },
-    rating_avg: { type: DataTypes.DECIMAL(3, 2), allowNull: false, defaultValue: 0 }
+    rating_avg: { type: DataTypes.DECIMAL(3, 2), allowNull: false, defaultValue: 0 },
+    is_featured: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false }
   },
   { sequelize, tableName: 'vendors', underscored: true }
 );

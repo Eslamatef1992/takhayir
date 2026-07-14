@@ -13,11 +13,16 @@ export const listVendors = catchAsync(async (req: Request, res: Response) => {
   if (status) where.status = status;
   else where.status = 'approved'; // public listing defaults to approved-only
 
+  if (req.query.featured === 'true') where.is_featured = true;
+
   const { rows, count } = await Vendor.findAndCountAll({
     where,
     limit,
     offset,
-    order: [['created_at', 'DESC']]
+    order: [
+      ['is_featured', 'DESC'],
+      ['created_at', 'DESC']
+    ]
   });
 
   res.json({ success: true, data: rows, meta: buildMeta(count, page, limit) });
@@ -94,6 +99,16 @@ export const updateVendorCommission = catchAsync(async (req: Request, res: Respo
   if (!vendor) throw ApiError.notFound('Vendor not found');
 
   vendor.commission_rate = req.body.commission_rate;
+  await vendor.save();
+
+  res.json({ success: true, data: vendor });
+});
+
+export const toggleVendorFeatured = catchAsync(async (req: Request, res: Response) => {
+  const vendor = await Vendor.findByPk(req.params.id);
+  if (!vendor) throw ApiError.notFound('Vendor not found');
+
+  vendor.is_featured = !vendor.is_featured;
   await vendor.save();
 
   res.json({ success: true, data: vendor });

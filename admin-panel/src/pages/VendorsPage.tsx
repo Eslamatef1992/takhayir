@@ -7,6 +7,7 @@ interface Vendor {
   store_slug: string;
   status: 'pending' | 'approved' | 'suspended' | 'rejected';
   commission_rate: string;
+  is_featured: boolean;
   user: { email: string; first_name: string };
 }
 
@@ -41,6 +42,11 @@ export default function VendorsPage() {
     load();
   }
 
+  async function toggleFeatured(id: number) {
+    await apiClient.patch(`/vendors/${id}/featured`);
+    load();
+  }
+
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
@@ -65,6 +71,7 @@ export default function VendorsPage() {
                 <th>Owner</th>
                 <th>Status</th>
                 <th>Commission</th>
+                <th>Featured</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -78,6 +85,14 @@ export default function VendorsPage() {
                     {v.commission_rate}%{' '}
                     <button className="btn btn-outline" onClick={() => updateCommission(v.id, v.commission_rate)}>
                       Edit
+                    </button>
+                  </td>
+                  <td>
+                    <button
+                      className={v.is_featured ? 'btn btn-success' : 'btn btn-outline'}
+                      onClick={() => toggleFeatured(v.id)}
+                    >
+                      {v.is_featured ? '★ Featured' : '☆ Feature'}
                     </button>
                   </td>
                   <td style={{ display: 'flex', gap: 6 }}>
@@ -95,7 +110,7 @@ export default function VendorsPage() {
               ))}
               {vendors.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="text-muted">No vendors found.</td>
+                  <td colSpan={6} className="text-muted">No vendors found.</td>
                 </tr>
               )}
             </tbody>

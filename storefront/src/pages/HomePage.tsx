@@ -5,11 +5,25 @@ import { ProductCard, ProductSummary } from '../components/ProductCard';
 import { HeroBanner } from '../components/HeroBanner';
 import { ShieldIcon, StoreIcon, TagIcon, TruckIcon } from '../components/Icons';
 
+const STORE_GRADIENTS = [
+  'linear-gradient(135deg, #f9622c, #d6247a)',
+  'linear-gradient(135deg, #d6247a, #6a2ce0)',
+  'linear-gradient(135deg, #6a2ce0, #2c7be5)',
+  'linear-gradient(135deg, #2c7be5, #12b886)'
+];
+
 interface Category {
   id: number;
   name: string;
   slug: string;
   children: Category[];
+}
+
+interface VendorSummary {
+  id: number;
+  store_name: string;
+  store_slug: string;
+  description: string | null;
 }
 
 const CATEGORY_GRADIENTS = [
@@ -46,6 +60,8 @@ export default function HomePage() {
   const [featured, setFeatured] = useState<ProductSummary[]>([]);
   const [sectionTitle, setSectionTitle] = useState('Featured products');
   const [loading, setLoading] = useState(true);
+  const [stores, setStores] = useState<VendorSummary[]>([]);
+  const [storesLoading, setStoresLoading] = useState(true);
 
   useEffect(() => {
     Promise.all([
@@ -63,6 +79,18 @@ export default function HomePage() {
         }
       })
       .finally(() => setLoading(false));
+
+    apiClient
+      .get<ApiEnvelope<VendorSummary[]>>('/vendors?featured=true&limit=6')
+      .then(async (res) => {
+        if (res.data.data.length > 0) {
+          setStores(res.data.data);
+        } else {
+          const fallback = await apiClient.get<ApiEnvelope<VendorSummary[]>>('/vendors?limit=6');
+          setStores(fallback.data.data);
+        }
+      })
+      .finally(() => setStoresLoading(false));
   }, []);
 
   return (
@@ -150,6 +178,64 @@ export default function HomePage() {
           <div className="grid-products">
             {featured.map((p) => (
               <ProductCard key={p.id} product={p} />
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section className="section" style={{ paddingTop: 0 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 18 }}>
+          <h2>Featured stores</h2>
+          <Link to="/vendors" className="text-muted" style={{ fontSize: 13, fontWeight: 700 }}>
+            View all &rarr;
+          </Link>
+        </div>
+        {storesLoading ? (
+          <div className="grid-products">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="skeleton" style={{ height: 120 }} />
+            ))}
+          </div>
+        ) : stores.length === 0 ? (
+          <div className="card" style={{ padding: 40, textAlign: 'center' }}>
+            <p className="text-muted">No stores yet — check back soon.</p>
+          </div>
+        ) : (
+          <div className="grid-products">
+            {stores.map((v, idx) => (
+              <Link key={v.id} to={`/vendors/${v.store_slug}`} className="card" style={{ padding: 18 }}>
+                <div
+                  style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: 12,
+                    background: STORE_GRADIENTS[idx % STORE_GRADIENTS.length],
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#fff',
+                    marginBottom: 10
+                  }}
+                >
+                  <StoreIcon size={20} />
+                </div>
+                <div style={{ fontWeight: 700, marginBottom: 4 }}>{v.store_name}</div>
+                {v.description && (
+                  <p
+                    className="text-muted"
+                    style={{
+                      fontSize: 13,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical'
+                    }}
+                  >
+                    {v.description}
+                  </p>
+                )}
+              </Link>
             ))}
           </div>
         )}

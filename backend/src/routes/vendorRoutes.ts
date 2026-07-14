@@ -127,6 +127,29 @@ router.patch(
 
 /**
  * @openapi
+ * /api/vendors/{id}/featured:
+ *   patch:
+ *     tags: [Vendors]
+ *     summary: Toggle a vendor's featured (homepage) status (admin only)
+ *     security: [{ bearerAuth: [] }]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     responses:
+ *       200: { description: Updated }
+ *       404: { description: Vendor not found }
+ */
+router.patch(
+  '/:id/featured',
+  authenticate,
+  requireRole('admin'),
+  vendorController.toggleVendorFeatured
+);
+
+/**
+ * @openapi
  * /api/vendors/{slug}:
  *   get:
  *     tags: [Vendors]
