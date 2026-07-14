@@ -26,7 +26,7 @@ export function Footer() {
       <div className="container">
         <div className="footer-grid">
           <div>
-            <img src={logoDark} alt="Takhayir" style={{ height: 44, marginBottom: 14, marginLeft: -6 }} />
+            <img src={logoDark} alt="Takhayir" style={{ height: 64, marginBottom: 14, marginLeft: -6 }} />
             <p style={{ fontSize: 14, lineHeight: 1.6, maxWidth: 280, color: 'rgba(255,255,255,0.6)' }}>
               A marketplace for every kind of business — fashion, electronics, home goods and more,
               all from independent vendors, one cart, one checkout.

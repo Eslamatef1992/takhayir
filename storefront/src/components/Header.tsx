@@ -50,7 +50,7 @@ export function Header() {
         </button>
 
         <Link to="/">
-          <Logo size={40} />
+          <Logo size={56} />
         </Link>
 
         <form onSubmit={handleSearch} className="header-search">
@@ -112,7 +112,7 @@ export function Header() {
         <div className="mobile-drawer" onClick={() => setMenuOpen(false)}>
           <div className="mobile-drawer-panel" onClick={(e) => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-              <Logo size={32} />
+              <Logo size={44} />
               <button aria-label="Close menu" onClick={() => setMenuOpen(false)} style={{ background: 'none', border: 'none' }}>
                 <CloseIcon />
               </button>
