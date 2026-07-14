@@ -1,0 +1,74 @@
+import { DataTypes, Model, Optional } from 'sequelize';
+import { sequelize } from '../config/database';
+
+export type VendorStatus = 'pending' | 'approved' | 'suspended' | 'rejected';
+
+export interface VendorAttributes {
+  id: number;
+  user_id: number;
+  store_name: string;
+  store_slug: string;
+  store_logo: string | null;
+  store_banner: string | null;
+  description: string | null;
+  business_type: string | null;
+  tax_number: string | null;
+  registration_number: string | null;
+  iban: string | null;
+  commission_rate: number;
+  status: VendorStatus;
+  rejection_reason: string | null;
+  rating_avg: number;
+  created_at?: Date;
+  updated_at?: Date;
+}
+
+export type VendorCreationAttributes = Optional<
+  VendorAttributes,
+  | 'id' | 'store_logo' | 'store_banner' | 'description' | 'business_type'
+  | 'tax_number' | 'registration_number' | 'iban' | 'commission_rate'
+  | 'status' | 'rejection_reason' | 'rating_avg'
+>;
+
+export class Vendor extends Model<VendorAttributes, VendorCreationAttributes> implements VendorAttributes {
+  public id!: number;
+  public user_id!: number;
+  public store_name!: string;
+  public store_slug!: string;
+  public store_logo!: string | null;
+  public store_banner!: string | null;
+  public description!: string | null;
+  public business_type!: string | null;
+  public tax_number!: string | null;
+  public registration_number!: string | null;
+  public iban!: string | null;
+  public commission_rate!: number;
+  public status!: VendorStatus;
+  public rejection_reason!: string | null;
+  public rating_avg!: number;
+  public readonly created_at!: Date;
+  public readonly updated_at!: Date;
+}
+
+Vendor.init(
+  {
+    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    user_id: { type: DataTypes.INTEGER, allowNull: false, unique: true },
+    store_name: { type: DataTypes.STRING(150), allowNull: false },
+    store_slug: { type: DataTypes.STRING(170), allowNull: false, unique: true },
+    store_logo: { type: DataTypes.STRING(500), allowNull: true },
+    store_banner: { type: DataTypes.STRING(500), allowNull: true },
+    description: { type: DataTypes.TEXT, allowNull: true },
+    business_type: { type: DataTypes.STRING(100), allowNull: true },
+    tax_number: { type: DataTypes.STRING(100), allowNull: true },
+    registration_number: { type: DataTypes.STRING(100), allowNull: true },
+    iban: { type: DataTypes.STRING(50), allowNull: true },
+    commission_rate: { type: DataTypes.DECIMAL(5, 2), allowNull: false, defaultValue: 10.0 },
+    status: { type: DataTypes.ENUM('pending', 'approved', 'suspended', 'rejected'), allowNull: false, defaultValue: 'pending' },
+    rejection_reason: { type: DataTypes.STRING(500), allowNull: true },
+    rating_avg: { type: DataTypes.DECIMAL(3, 2), allowNull: false, defaultValue: 0 }
+  },
+  { sequelize, tableName: 'vendors', underscored: true }
+);
+
+export default Vendor;

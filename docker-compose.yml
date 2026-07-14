@@ -1,0 +1,47 @@
+version: '3.8'
+
+# Local development only. For production, point the backend at a managed
+# MySQL instance and run each app behind your own reverse proxy / hosting.
+services:
+  mysql:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: change_me
+      MYSQL_DATABASE: takhayir
+    ports:
+      - '3306:3306'
+    volumes:
+      - takhayir_mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      NODE_ENV: development
+      PORT: 4000
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: takhayir
+      DB_USER: root
+      DB_PASSWORD: change_me
+      JWT_SECRET: dev_secret_change_me
+      JWT_REFRESH_SECRET: dev_refresh_secret_change_me
+      CLIENT_STOREFRONT_URL: http://localhost:5173
+      CLIENT_ADMIN_URL: http://localhost:5174
+      CLIENT_VENDOR_URL: http://localhost:5175
+    ports:
+      - '4000:4000'
+    volumes:
+      - ./backend/uploads:/app/uploads
+
+volumes:
+  takhayir_mysql_data:

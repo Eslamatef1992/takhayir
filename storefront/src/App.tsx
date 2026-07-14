@@ -1,0 +1,75 @@
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import { CartProvider } from './context/CartContext';
+import { Layout } from './components/Layout';
+import { ProtectedRoute } from './components/ProtectedRoute';
+
+import HomePage from './pages/HomePage';
+import ProductListPage from './pages/ProductListPage';
+import ProductPage from './pages/ProductPage';
+import CartPage from './pages/CartPage';
+import CheckoutPage from './pages/CheckoutPage';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+import OrdersPage from './pages/OrdersPage';
+import OrderDetailPage from './pages/OrderDetailPage';
+import OrderConfirmationPage from './pages/OrderConfirmationPage';
+import VendorsPage from './pages/VendorsPage';
+import WishlistPage from './pages/WishlistPage';
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <CartProvider>
+          <Routes>
+            <Route element={<Layout />}>
+              <Route index element={<HomePage />} />
+              <Route path="categories/:slug" element={<ProductListPage mode="category" />} />
+              <Route path="search" element={<ProductListPage mode="search" />} />
+              <Route path="vendors" element={<VendorsPage />} />
+              <Route path="vendors/:slug" element={<ProductListPage mode="vendor" />} />
+              <Route path="products/:slug" element={<ProductPage />} />
+              <Route path="cart" element={<CartPage />} />
+              <Route
+                path="checkout"
+                element={
+                  <ProtectedRoute>
+                    <CheckoutPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="login" element={<LoginPage />} />
+              <Route path="register" element={<RegisterPage />} />
+              <Route
+                path="orders"
+                element={
+                  <ProtectedRoute>
+                    <OrdersPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="orders/:id"
+                element={
+                  <ProtectedRoute>
+                    <OrderDetailPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="orders/confirmation" element={<OrderConfirmationPage />} />
+              <Route
+                path="wishlist"
+                element={
+                  <ProtectedRoute>
+                    <WishlistPage />
+                  </ProtectedRoute>
+                }
+              />
+            </Route>
+          </Routes>
+        </CartProvider>
+      </AuthProvider>
+    </BrowserRouter>
+  );
+}
