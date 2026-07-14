@@ -17,6 +17,7 @@ import { Review } from './Review';
 import { Wishlist } from './Wishlist';
 import { Notification } from './Notification';
 import { VendorPayout } from './VendorPayout';
+import { Banner } from './Banner';
 
 // User <-> Vendor (1:1)
 User.hasOne(Vendor, { foreignKey: 'user_id', as: 'vendorProfile' });
@@ -138,5 +139,6 @@ export {
   Review,
   Wishlist,
   Notification,
-  VendorPayout
+  VendorPayout,
+  Banner
 };

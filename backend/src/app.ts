@@ -21,6 +21,7 @@ import reviewRoutes from './routes/reviewRoutes';
 import wishlistRoutes from './routes/wishlistRoutes';
 import paymentRoutes from './routes/paymentRoutes';
 import dashboardRoutes from './routes/dashboardRoutes';
+import bannerRoutes from './routes/bannerRoutes';
 
 dotenv.config();
 
@@ -71,6 +72,7 @@ app.use('/api/reviews', reviewRoutes);
 app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/banners', bannerRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

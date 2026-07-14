@@ -8,7 +8,8 @@ const navItems = [
   { to: '/categories', label: 'Categories' },
   { to: '/products', label: 'Products' },
   { to: '/orders', label: 'Orders' },
-  { to: '/coupons', label: 'Coupons' }
+  { to: '/coupons', label: 'Coupons' },
+  { to: '/banners', label: 'Banners' }
 ];
 
 export function Layout() {

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { apiClient, ApiEnvelope } from '../api/client';
 import { ProductCard, ProductSummary } from '../components/ProductCard';
+import { HeroBanner } from '../components/HeroBanner';
 
 interface Category {
   id: number;
@@ -29,18 +30,7 @@ export default function HomePage() {
 
   return (
     <div>
-      <section
-        style={{
-          background: 'var(--brand-gradient)',
-          borderRadius: 16,
-          padding: '48px 32px',
-          color: '#fff',
-          marginBottom: 32
-        }}
-      >
-        <h1 style={{ fontSize: 32, margin: '0 0 8px' }}>Shop everything, from every vendor.</h1>
-        <p style={{ opacity: 0.9, margin: 0 }}>Fashion, electronics, home goods and more — all in one marketplace.</p>
-      </section>
+      <HeroBanner />
 
       <h2 style={{ fontSize: 18, marginBottom: 16 }}>Shop by category</h2>
       <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', marginBottom: 40 }}>

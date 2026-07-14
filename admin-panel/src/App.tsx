@@ -10,6 +10,7 @@ import CategoriesPage from './pages/CategoriesPage';
 import ProductsPage from './pages/ProductsPage';
 import OrdersPage from './pages/OrdersPage';
 import CouponsPage from './pages/CouponsPage';
+import BannersPage from './pages/BannersPage';
 
 export default function App() {
   return (
@@ -30,6 +31,7 @@ export default function App() {
             <Route path="products" element={<ProductsPage />} />
             <Route path="orders" element={<OrdersPage />} />
             <Route path="coupons" element={<CouponsPage />} />
+            <Route path="banners" element={<BannersPage />} />
           </Route>
         </Routes>
       </AuthProvider>

@@ -34,7 +34,8 @@ const options: swaggerJSDoc.Options = {
       { name: 'Reviews' },
       { name: 'Wishlist' },
       { name: 'Payments' },
-      { name: 'Dashboard' }
+      { name: 'Dashboard' },
+      { name: 'Banners' }
     ]
   },
   apis: ['./src/routes/*.ts', './dist/routes/*.js']
