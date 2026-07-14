@@ -2,6 +2,14 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { apiClient, ApiEnvelope } from '../api/client';
 import logoDark from '../assets/brand/logo-dark.svg';
+import { FacebookIcon, InstagramIcon, TwitterIcon, WhatsAppIcon } from './Icons';
+
+const SOCIAL_LINKS = [
+  { icon: FacebookIcon, label: 'Facebook', href: 'https://facebook.com/takhayir' },
+  { icon: InstagramIcon, label: 'Instagram', href: 'https://instagram.com/takhayir' },
+  { icon: TwitterIcon, label: 'X (Twitter)', href: 'https://x.com/takhayir' },
+  { icon: WhatsAppIcon, label: 'WhatsApp', href: 'https://wa.me/965' }
+];
 
 interface Category {
   id: number;
@@ -27,10 +35,24 @@ export function Footer() {
         <div className="footer-grid">
           <div>
             <img src={logoDark} alt="Takhayir" style={{ height: 64, marginBottom: 14, marginLeft: -6 }} />
-            <p style={{ fontSize: 14, lineHeight: 1.6, maxWidth: 280, color: 'rgba(255,255,255,0.6)' }}>
+            <p style={{ fontSize: 14, lineHeight: 1.6, maxWidth: 280, color: 'rgba(255,255,255,0.6)', marginBottom: 16 }}>
               A marketplace for every kind of business — fashion, electronics, home goods and more,
               all from independent vendors, one cart, one checkout.
             </p>
+            <div style={{ display: 'flex', gap: 10 }}>
+              {SOCIAL_LINKS.map(({ icon: Icon, label, href }) => (
+                <a
+                  key={label}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={label}
+                  className="footer-social-btn"
+                >
+                  <Icon size={16} />
+                </a>
+              ))}
+            </div>
           </div>
 
           <div>

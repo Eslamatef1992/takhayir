@@ -53,21 +53,12 @@ export function Header() {
           <Logo size={56} />
         </Link>
 
-        <form onSubmit={handleSearch} className="header-search">
-          <SearchIcon size={17} />
-          <input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Search products, categories, stores..."
-          />
-        </form>
-
         <nav className="header-nav">
-          <Link to="/vendors" className="nav-text-link text-muted" style={{ fontSize: 14, fontWeight: 600 }}>
-            Stores
-          </Link>
+          <button className="icon-link icon-btn" aria-label="Search" onClick={() => setMenuOpen(true)}>
+            <SearchIcon size={20} />
+          </button>
 
-          <Link to="/wishlist" className="icon-link hide-mobile" aria-label="Wishlist">
+          <Link to="/wishlist" className="icon-link" aria-label="Wishlist">
             <HeartIcon size={21} />
           </Link>
 
@@ -76,37 +67,11 @@ export function Header() {
             {itemCount > 0 && <span className="cart-badge">{itemCount}</span>}
           </Link>
 
-          {user ? (
-            <div className="hide-mobile" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <Link to="/orders" className="text-muted" style={{ fontSize: 14, fontWeight: 600 }}>
-                My Orders
-              </Link>
-              <button className="btn btn-outline btn-sm" onClick={logout}>
-                Log out
-              </button>
-            </div>
-          ) : (
-            <div className="hide-mobile" style={{ display: 'flex', gap: 8 }}>
-              <Link to="/login" className="btn btn-outline btn-sm">
-                Log in
-              </Link>
-              <Link to="/register" className="btn btn-primary btn-sm">
-                Sign up
-              </Link>
-            </div>
-          )}
+          <Link to={user ? '/orders' : '/login'} className="icon-link" aria-label="Account">
+            <UserIcon size={21} />
+          </Link>
         </nav>
       </div>
-
-      {categories.length > 0 && (
-        <div className="category-strip hide-mobile">
-          {categories.map((c) => (
-            <Link key={c.id} to={`/categories/${c.slug}`}>
-              {c.name}
-            </Link>
-          ))}
-        </div>
-      )}
 
       {menuOpen && (
         <div className="mobile-drawer" onClick={() => setMenuOpen(false)}>
@@ -120,8 +85,18 @@ export function Header() {
 
             <form onSubmit={handleSearch} className="header-search" style={{ display: 'block', maxWidth: 'none', margin: '8px 0 4px' }}>
               <SearchIcon size={17} />
-              <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search Takhayir..." />
+              <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search products, categories, stores..." />
             </form>
+
+            <Link to="/" className="mobile-drawer-link" onClick={() => setMenuOpen(false)}>
+              Home
+            </Link>
+            <Link to="/vendors" className="mobile-drawer-link" onClick={() => setMenuOpen(false)}>
+              <StoreIcon size={18} /> &nbsp;All stores
+            </Link>
+            <Link to="/wishlist" className="mobile-drawer-link" onClick={() => setMenuOpen(false)}>
+              <HeartIcon size={18} /> &nbsp;Wishlist
+            </Link>
 
             {!user && (
               <div style={{ display: 'flex', gap: 8, margin: '12px 0' }}>
@@ -134,12 +109,6 @@ export function Header() {
               </div>
             )}
 
-            <Link to="/vendors" className="mobile-drawer-link" onClick={() => setMenuOpen(false)}>
-              <StoreIcon size={18} /> &nbsp;All stores
-            </Link>
-            <Link to="/wishlist" className="mobile-drawer-link" onClick={() => setMenuOpen(false)}>
-              <HeartIcon size={18} /> &nbsp;Wishlist
-            </Link>
             {user && (
               <Link to="/orders" className="mobile-drawer-link" onClick={() => setMenuOpen(false)}>
                 <UserIcon size={18} /> &nbsp;My orders

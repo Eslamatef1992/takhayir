@@ -117,3 +117,56 @@ export function MailIcon({ size, className }: IconProps) {
     </svg>
   );
 }
+
+export function FacebookIcon({ size, className }: IconProps) {
+  return (
+    <svg width={size ?? 20} height={size ?? 20} viewBox="0 0 24 24" fill="currentColor" className={className}>
+      <path d="M13.5 22v-8.4h2.8l.4-3.3h-3.2V8.1c0-.95.26-1.6 1.63-1.6h1.74V3.5C16.6 3.4 15.6 3.3 14.4 3.3c-2.5 0-4.2 1.5-4.2 4.4v2.6H7.4v3.3h2.8V22h3.3Z" />
+    </svg>
+  );
+}
+
+export function InstagramIcon({ size, className }: IconProps) {
+  return (
+    <svg {...base(size)} className={className}>
+      <rect x="3" y="3" width="18" height="18" rx="5" />
+      <circle cx="12" cy="12" r="4" />
+      <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+export function TwitterIcon({ size, className }: IconProps) {
+  return (
+    <svg width={size ?? 20} height={size ?? 20} viewBox="0 0 24 24" fill="currentColor" className={className}>
+      <path d="M18.9 3h3.1l-6.8 7.7L23 21h-6.3l-4.9-6.4L6.2 21H3.1l7.3-8.2L2 3h6.4l4.4 5.9L18.9 3Zm-1.1 16.2h1.7L7.3 4.7H5.5l12.3 14.5Z" />
+    </svg>
+  );
+}
+
+export function WhatsAppIcon({ size, className }: IconProps) {
+  return (
+    <svg width={size ?? 20} height={size ?? 20} viewBox="0 0 24 24" fill="currentColor" className={className}>
+      <path d="M17.5 14.4c-.3-.15-1.75-.86-2-.96-.27-.1-.47-.15-.66.15-.2.3-.76.96-.93 1.16-.17.2-.34.22-.64.07-.3-.15-1.25-.46-2.38-1.47-.88-.78-1.47-1.75-1.65-2.05-.17-.3-.02-.46.13-.61.13-.13.3-.34.44-.5.15-.18.2-.3.3-.5.1-.2.05-.38-.02-.53-.08-.15-.66-1.6-.9-2.18-.24-.58-.48-.5-.66-.5-.17 0-.37-.02-.57-.02s-.53.07-.8.38c-.28.3-1.05 1.03-1.05 2.5s1.08 2.9 1.23 3.1c.15.2 2.13 3.25 5.16 4.55.72.31 1.28.5 1.72.64.72.23 1.38.2 1.9.12.58-.09 1.75-.72 2-1.4.24-.7.24-1.28.17-1.4-.07-.13-.27-.2-.57-.35Z" />
+      <path d="M12 2a10 10 0 0 0-8.6 15.05L2 22l5.1-1.34A10 10 0 1 0 12 2Zm0 18a8 8 0 0 1-4.07-1.11l-.29-.17-3.02.8.81-2.94-.19-.3A8 8 0 1 1 12 20Z" />
+    </svg>
+  );
+}
+
+export function BellIcon({ size, className }: IconProps) {
+  return (
+    <svg {...base(size)} className={className}>
+      <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
+      <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+    </svg>
+  );
+}
+
+export function ArrowRightIcon({ size, className }: IconProps) {
+  return (
+    <svg {...base(size)} className={className}>
+      <path d="M5 12h14" />
+      <path d="m13 6 6 6-6 6" />
+    </svg>
+  );
+}

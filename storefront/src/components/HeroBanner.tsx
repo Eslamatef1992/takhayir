@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { apiClient, ApiEnvelope } from '../api/client';
+import { ArrowRightIcon } from './Icons';
 
 interface Banner {
   id: number;
@@ -40,14 +41,22 @@ export function HeroBanner() {
       <section
         style={{
           background: 'var(--brand-gradient)',
-          borderRadius: 16,
-          padding: '48px 32px',
+          borderRadius: 20,
+          padding: 'clamp(32px, 6vw, 56px) clamp(24px, 5vw, 48px)',
           color: '#fff',
           marginBottom: 32
         }}
       >
-        <h1 style={{ fontSize: 32, margin: '0 0 8px' }}>Shop everything, from every vendor.</h1>
-        <p style={{ opacity: 0.9, margin: 0 }}>Fashion, electronics, home goods and more — all in one marketplace.</p>
+        <span className="hero-badge">Every vendor, one marketplace</span>
+        <h1 style={{ fontSize: 'clamp(26px, 4vw, 38px)', margin: '14px 0 10px', maxWidth: 480 }}>
+          Shop everything, from every vendor.
+        </h1>
+        <p style={{ opacity: 0.9, margin: '0 0 22px', maxWidth: 420 }}>
+          Fashion, electronics, home goods and more — all in one marketplace.
+        </p>
+        <Link to="/search?q=" className="hero-cta">
+          Shop now <ArrowRightIcon size={17} />
+        </Link>
       </section>
     );
   }
@@ -76,16 +85,22 @@ export function HeroBanner() {
           style={{
             position: 'absolute',
             inset: 0,
-            background: 'linear-gradient(90deg, rgba(20,18,43,0.65) 0%, rgba(20,18,43,0.15) 55%, rgba(20,18,43,0) 100%)',
+            background: 'linear-gradient(90deg, rgba(20,18,43,0.68) 0%, rgba(20,18,43,0.2) 58%, rgba(20,18,43,0) 100%)',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'center',
-            padding: '0 40px',
+            padding: 'clamp(20px, 4vw, 40px)',
             color: '#fff'
           }}
         >
-          {banner.title && <h1 style={{ fontSize: 30, margin: '0 0 8px', maxWidth: 460 }}>{banner.title}</h1>}
-          {banner.subtitle && <p style={{ opacity: 0.95, margin: 0, maxWidth: 420 }}>{banner.subtitle}</p>}
+          <span className="hero-badge">Special offer</span>
+          {banner.title && (
+            <h1 style={{ fontSize: 'clamp(22px, 4vw, 30px)', margin: '14px 0 8px', maxWidth: 460 }}>{banner.title}</h1>
+          )}
+          {banner.subtitle && <p style={{ opacity: 0.95, margin: '0 0 18px', maxWidth: 420 }}>{banner.subtitle}</p>}
+          <span className="hero-cta">
+            Shop now <ArrowRightIcon size={17} />
+          </span>
         </div>
       )}
     </div>
