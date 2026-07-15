@@ -35,8 +35,8 @@
   --space-7: 48px;
   --space-8: 64px;
 
-  --container-max: 1600px;
-  --container-pad: clamp(16px, 4vw, 40px);
+  --container-max: min(96vw, 1920px);
+  --container-pad: clamp(16px, 2.5vw, 32px);
 
   color-scheme: light;
 }
