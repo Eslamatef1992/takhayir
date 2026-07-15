@@ -46,6 +46,11 @@ export const getCategory = catchAsync(async (req: Request, res: Response) => {
   res.json({ success: true, data: category });
 });
 
+export const uploadCategoryImage = catchAsync(async (req: Request, res: Response) => {
+  if (!req.file) throw ApiError.badRequest('No image file uploaded');
+  res.status(201).json({ success: true, data: { url: `/uploads/${req.file.filename}` } });
+});
+
 export const createCategory = catchAsync(async (req: Request, res: Response) => {
   const { name, parent_id, description, icon, image, is_active, sort_order } = req.body;
   const slug = await uniqueSlug(name, (s) => Category.findOne({ where: { slug: s } }));

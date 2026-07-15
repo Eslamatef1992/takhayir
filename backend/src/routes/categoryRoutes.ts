@@ -4,6 +4,7 @@ import { categoryValidator } from '../validators/categoryValidators';
 import { validateRequest } from '../middleware/validateRequest';
 import { authenticate } from '../middleware/auth';
 import { requireRole } from '../middleware/roles';
+import { upload } from '../middleware/upload';
 
 const router = Router();
 
@@ -46,6 +47,26 @@ const router = Router();
  */
 router.get('/', categoryController.listCategories);
 router.post('/', authenticate, requireRole('admin'), categoryValidator, validateRequest, categoryController.createCategory);
+
+/**
+ * @openapi
+ * /api/categories/upload:
+ *   post:
+ *     tags: [Categories]
+ *     summary: Upload a category tile image and get back its URL (admin only)
+ *     security: [{ bearerAuth: [] }]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               image: { type: string, format: binary }
+ *     responses:
+ *       201: { description: Image uploaded, returns { url } }
+ */
+router.post('/upload', authenticate, requireRole('admin'), upload.single('image'), categoryController.uploadCategoryImage);
 
 /**
  * @openapi

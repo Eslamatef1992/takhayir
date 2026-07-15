@@ -6,7 +6,6 @@ import { FacebookIcon, InstagramIcon, TwitterIcon, WhatsAppIcon } from './Icons'
 import knetIcon from '../assets/payments/knet.svg';
 import visaIcon from '../assets/payments/visa.svg';
 import mastercardIcon from '../assets/payments/mastercard.svg';
-import applePayIcon from '../assets/payments/apple-pay.svg';
 
 const SOCIAL_LINKS = [
   { icon: FacebookIcon, label: 'Facebook', href: 'https://facebook.com/takhayir' },
@@ -104,13 +103,6 @@ export function Footer() {
             <img src={knetIcon} alt="KNET" className="footer-payment-icon" />
             <img src={visaIcon} alt="Visa" className="footer-payment-icon" />
             <img src={mastercardIcon} alt="Mastercard" className="footer-payment-icon" />
-            <img src={applePayIcon} alt="Apple Pay" className="footer-payment-icon" />
-            <span className="footer-payment-badge" style={{ background: '#e91e63' }}>
-              deema
-            </span>
-            <span className="footer-payment-badge" style={{ background: '#0b1b3f' }}>
-              taly
-            </span>
           </div>
           <a
             href="https://teknulugy.com"

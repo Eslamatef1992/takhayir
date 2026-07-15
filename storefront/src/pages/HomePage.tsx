@@ -16,8 +16,11 @@ interface Category {
   id: number;
   name: string;
   slug: string;
+  image: string | null;
   children: Category[];
 }
+
+const API_ORIGIN = (import.meta.env.VITE_API_URL || 'http://localhost:4000/api').replace(/\/api\/?$/, '');
 
 interface VendorSummary {
   id: number;
@@ -127,33 +130,30 @@ export default function HomePage() {
 
       <section className="section">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 18 }}>
-          <h2>Shop by category</h2>
+          <h2>Shop by Popular Categories</h2>
         </div>
-        <div className="grid-categories">
-          {categories.map((cat, idx) => (
-            <Link key={cat.id} to={`/categories/${cat.slug}`} className="card" style={{ padding: '20px 12px', textAlign: 'center' }}>
-              <div
-                style={{
-                  width: 44,
-                  height: 44,
-                  margin: '0 auto 10px',
-                  borderRadius: '50%',
-                  background: CATEGORY_GRADIENTS[idx % CATEGORY_GRADIENTS.length],
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#fff',
-                  fontWeight: 800,
-                  fontSize: 16
-                }}
+        <div className="category-tile-grid">
+          {categories.slice(0, 6).map((cat, idx) => {
+            const imageUrl = cat.image
+              ? cat.image.startsWith('http')
+                ? cat.image
+                : `${API_ORIGIN}${cat.image}`
+              : null;
+            return (
+              <Link
+                key={cat.id}
+                to={`/categories/${cat.slug}`}
+                className="category-tile"
+                style={!imageUrl ? { background: CATEGORY_GRADIENTS[idx % CATEGORY_GRADIENTS.length] } : undefined}
               >
-                {cat.name.charAt(0).toUpperCase()}
-              </div>
-              <div style={{ fontSize: 13, fontWeight: 700 }}>{cat.name}</div>
-            </Link>
-          ))}
+                {imageUrl && <img src={imageUrl} alt={cat.name} className="category-tile-img" />}
+                <span className="category-tile-scrim" />
+                <span className="category-tile-label">{cat.name}</span>
+              </Link>
+            );
+          })}
           {categories.length === 0 &&
-            Array.from({ length: 6 }).map((_, i) => <div key={i} className="skeleton" style={{ height: 108 }} />)}
+            Array.from({ length: 6 }).map((_, i) => <div key={i} className="skeleton category-tile" />)}
         </div>
       </section>
 
