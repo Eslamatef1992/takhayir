@@ -111,7 +111,6 @@ export function Footer() {
             <span className="footer-payment-badge" style={{ background: '#0b1b3f' }}>
               taly
             </span>
-            <span className="footer-payment-text">Cash on delivery</span>
           </div>
           <a
             href="https://teknulugy.com"
