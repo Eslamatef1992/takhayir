@@ -181,6 +181,14 @@ export function BellIcon({ size, className }: IconProps) {
   );
 }
 
+export function StarIcon({ size, className }: IconProps) {
+  return (
+    <svg width={size ?? 20} height={size ?? 20} viewBox="0 0 24 24" fill="currentColor" className={className}>
+      <path d="m12 2.5 2.9 6.6 7.2.7-5.4 4.8 1.6 7.1L12 17.9l-6.3 3.8 1.6-7.1-5.4-4.8 7.2-.7L12 2.5Z" />
+    </svg>
+  );
+}
+
 export function ArrowRightIcon({ size, className }: IconProps) {
   return (
     <svg {...base(size)} className={className}>

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { apiClient, ApiEnvelope } from '../api/client';
 import { ProductCard, ProductSummary } from '../components/ProductCard';
 import { HeroBanner } from '../components/HeroBanner';
+import { Reveal } from '../components/Reveal';
 import { ShieldIcon, StoreIcon, TagIcon, TruckIcon } from '../components/Icons';
 
 const STORE_GRADIENTS = [
@@ -27,6 +28,7 @@ interface VendorSummary {
   store_name: string;
   store_slug: string;
   description: string | null;
+  is_featured?: boolean;
 }
 
 const CATEGORY_GRADIENTS = [
@@ -40,7 +42,7 @@ const CATEGORY_GRADIENTS = [
 
 const TRUST_POINTS = [
   { icon: TruckIcon, title: 'Fast delivery', copy: 'Tracked shipping from every vendor' },
-  { icon: ShieldIcon, title: 'Secure checkout', copy: 'Cards, Mada, Apple Pay, BNPL & COD' },
+  { icon: ShieldIcon, title: 'Secure checkout', copy: 'Cards, KNET, Apple Pay, BNPL & COD' },
   { icon: StoreIcon, title: 'Verified stores', copy: 'Every vendor is reviewed before listing' },
   { icon: TagIcon, title: 'Real variety', copy: 'Fashion, electronics, home & more' }
 ];
@@ -101,37 +103,32 @@ export default function HomePage() {
       <HeroBanner />
 
       <section className="section" style={{ paddingTop: 8, paddingBottom: 8 }}>
-        <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
-          {TRUST_POINTS.map(({ icon: Icon, title, copy }) => (
-            <div key={title} className="card" style={{ display: 'flex', gap: 12, alignItems: 'flex-start', padding: 18 }}>
-              <div
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 12,
-                  background: 'var(--brand-gradient-soft)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'var(--brand-purple)',
-                  flexShrink: 0
-                }}
-              >
-                <Icon size={20} />
+        <div className="why-grid">
+          {TRUST_POINTS.map(({ icon: Icon, title, copy }, i) => (
+            <Reveal key={title} delay={i * 60}>
+              <div className="why-card">
+                <div className="why-icon">
+                  <Icon size={21} />
+                </div>
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: 14.5, marginBottom: 2 }}>{title}</div>
+                  <div className="text-muted" style={{ fontSize: 12.5, lineHeight: 1.5 }}>{copy}</div>
+                </div>
               </div>
-              <div>
-                <div style={{ fontWeight: 700, fontSize: 14 }}>{title}</div>
-                <div className="text-muted" style={{ fontSize: 12.5 }}>{copy}</div>
-              </div>
-            </div>
+            </Reveal>
           ))}
         </div>
       </section>
 
       <section className="section">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 18 }}>
-          <h2>Shop by Popular Categories</h2>
-        </div>
+        <Reveal>
+          <div className="section-head">
+            <div>
+              <span className="eyebrow">Curated for you</span>
+              <h2>Shop by Popular Categories</h2>
+            </div>
+          </div>
+        </Reveal>
         <div className="category-tile-grid">
           {categories.slice(0, 6).map((cat, idx) => {
             const imageUrl = cat.image
@@ -140,16 +137,17 @@ export default function HomePage() {
                 : `${API_ORIGIN}${cat.image}`
               : null;
             return (
-              <Link
-                key={cat.id}
-                to={`/categories/${cat.slug}`}
-                className="category-tile"
-                style={!imageUrl ? { background: CATEGORY_GRADIENTS[idx % CATEGORY_GRADIENTS.length] } : undefined}
-              >
-                {imageUrl && <img src={imageUrl} alt={cat.name} className="category-tile-img" />}
-                <span className="category-tile-scrim" />
-                <span className="category-tile-label">{cat.name}</span>
-              </Link>
+              <Reveal key={cat.id} delay={idx * 60}>
+                <Link
+                  to={`/categories/${cat.slug}`}
+                  className="category-tile"
+                  style={!imageUrl ? { background: CATEGORY_GRADIENTS[idx % CATEGORY_GRADIENTS.length] } : undefined}
+                >
+                  {imageUrl && <img src={imageUrl} alt={cat.name} className="category-tile-img" />}
+                  <span className="category-tile-scrim" />
+                  <span className="category-tile-label">{cat.name}</span>
+                </Link>
+              </Reveal>
             );
           })}
           {categories.length === 0 &&
@@ -158,12 +156,17 @@ export default function HomePage() {
       </section>
 
       <section className="section" style={{ paddingTop: 0 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 18 }}>
-          <h2>{sectionTitle}</h2>
-          <Link to="/search?q=" className="text-muted" style={{ fontSize: 13, fontWeight: 700 }}>
-            View all &rarr;
-          </Link>
-        </div>
+        <Reveal>
+          <div className="section-head">
+            <div>
+              <span className="eyebrow">Hand-picked</span>
+              <h2>{sectionTitle}</h2>
+            </div>
+            <Link to="/search?q=" className="section-link">
+              View all &rarr;
+            </Link>
+          </div>
+        </Reveal>
         {loading ? (
           <div className="grid-products">
             {Array.from({ length: 8 }).map((_, i) => (
@@ -176,24 +179,31 @@ export default function HomePage() {
           </div>
         ) : (
           <div className="grid-products">
-            {featured.map((p) => (
-              <ProductCard key={p.id} product={p} />
+            {featured.map((p, i) => (
+              <Reveal key={p.id} delay={(i % 4) * 50}>
+                <ProductCard product={p} />
+              </Reveal>
             ))}
           </div>
         )}
       </section>
 
       <section className="section" style={{ paddingTop: 0 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 18 }}>
-          <h2>Featured stores</h2>
-          <Link to="/vendors" className="text-muted" style={{ fontSize: 13, fontWeight: 700 }}>
-            View all &rarr;
-          </Link>
-        </div>
+        <Reveal>
+          <div className="section-head">
+            <div>
+              <span className="eyebrow">Trusted sellers</span>
+              <h2>Featured stores</h2>
+            </div>
+            <Link to="/vendors" className="section-link">
+              View all &rarr;
+            </Link>
+          </div>
+        </Reveal>
         {storesLoading ? (
           <div className="grid-products">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="skeleton" style={{ height: 120 }} />
+              <div key={i} className="skeleton" style={{ height: 150 }} />
             ))}
           </div>
         ) : stores.length === 0 ? (
@@ -203,76 +213,58 @@ export default function HomePage() {
         ) : (
           <div className="grid-products">
             {stores.map((v, idx) => (
-              <Link key={v.id} to={`/vendors/${v.store_slug}`} className="card" style={{ padding: 18 }}>
-                <div
-                  style={{
-                    width: 44,
-                    height: 44,
-                    borderRadius: 12,
-                    background: STORE_GRADIENTS[idx % STORE_GRADIENTS.length],
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#fff',
-                    marginBottom: 10
-                  }}
-                >
-                  <StoreIcon size={20} />
-                </div>
-                <div style={{ fontWeight: 700, marginBottom: 4 }}>{v.store_name}</div>
-                {v.description && (
-                  <p
-                    className="text-muted"
-                    style={{
-                      fontSize: 13,
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      display: '-webkit-box',
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical'
-                    }}
+              <Reveal key={v.id} delay={idx * 50}>
+                <Link to={`/vendors/${v.store_slug}`} className="card card-premium store-card">
+                  {v.is_featured && <span className="store-card-featured-tag">Featured</span>}
+                  <div
+                    className="store-card-icon"
+                    style={{ background: STORE_GRADIENTS[idx % STORE_GRADIENTS.length] }}
                   >
-                    {v.description}
-                  </p>
-                )}
-              </Link>
+                    <StoreIcon size={20} />
+                  </div>
+                  <div style={{ fontWeight: 800, marginBottom: 4 }}>{v.store_name}</div>
+                  {v.description && (
+                    <p
+                      className="text-muted"
+                      style={{
+                        fontSize: 13,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical'
+                      }}
+                    >
+                      {v.description}
+                    </p>
+                  )}
+                </Link>
+              </Reveal>
             ))}
           </div>
         )}
       </section>
 
-      <section
-        className="card"
-        style={{
-          background: 'var(--brand-gradient)',
-          color: '#fff',
-          border: 'none',
-          padding: 'clamp(28px, 5vw, 48px)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: 20,
-          marginBottom: 24
-        }}
-      >
-        <div>
-          <h2 style={{ margin: '0 0 8px' }}>Have something to sell?</h2>
-          <p style={{ opacity: 0.92, maxWidth: 420 }}>
-            Open your own store on Takhayir and reach customers across every category, with your own
-            dashboard for products, orders and payouts.
-          </p>
-        </div>
-        <a
-          href={import.meta.env.VITE_VENDOR_URL || 'https://vendor.takhayir.com'}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="btn"
-          style={{ background: '#fff', color: 'var(--brand-navy)', flexShrink: 0 }}
-        >
-          Become a vendor
-        </a>
-      </section>
+      <Reveal>
+        <section className="vendor-cta">
+          <div className="vendor-cta-text">
+            <span className="eyebrow eyebrow-light">Sell on Takhayir</span>
+            <h2 style={{ marginTop: 10 }}>Have something to sell?</h2>
+            <p>
+              Open your own store on Takhayir and reach customers across every category, with your own
+              dashboard for products, orders and payouts.
+            </p>
+          </div>
+          <a
+            href={import.meta.env.VITE_VENDOR_URL || 'https://vendor.takhayir.com'}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn hero-cta vendor-cta-btn"
+          >
+            Become a vendor
+          </a>
+        </section>
+      </Reveal>
     </div>
   );
 }
