@@ -15,13 +15,16 @@ export interface UserAttributes {
   status: UserStatus;
   avatar_url: string | null;
   email_verified_at: Date | null;
+  password_reset_token_hash: string | null;
+  password_reset_expires: Date | null;
   created_at?: Date;
   updated_at?: Date;
 }
 
 export type UserCreationAttributes = Optional<
   UserAttributes,
-  'id' | 'last_name' | 'phone' | 'avatar_url' | 'email_verified_at' | 'status' | 'role'
+  | 'id' | 'last_name' | 'phone' | 'avatar_url' | 'email_verified_at' | 'status' | 'role'
+  | 'password_reset_token_hash' | 'password_reset_expires'
 >;
 
 export class User extends Model<UserAttributes, UserCreationAttributes> implements UserAttributes {
@@ -35,6 +38,8 @@ export class User extends Model<UserAttributes, UserCreationAttributes> implemen
   public status!: UserStatus;
   public avatar_url!: string | null;
   public email_verified_at!: Date | null;
+  public password_reset_token_hash!: string | null;
+  public password_reset_expires!: Date | null;
   public readonly created_at!: Date;
   public readonly updated_at!: Date;
 }
@@ -50,7 +55,9 @@ User.init(
     role: { type: DataTypes.ENUM('admin', 'vendor', 'customer'), allowNull: false, defaultValue: 'customer' },
     status: { type: DataTypes.ENUM('active', 'suspended'), allowNull: false, defaultValue: 'active' },
     avatar_url: { type: DataTypes.STRING(500), allowNull: true },
-    email_verified_at: { type: DataTypes.DATE, allowNull: true }
+    email_verified_at: { type: DataTypes.DATE, allowNull: true },
+    password_reset_token_hash: { type: DataTypes.STRING(255), allowNull: true },
+    password_reset_expires: { type: DataTypes.DATE, allowNull: true }
   },
   { sequelize, tableName: 'users', underscored: true }
 );

@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { catchAsync } from '../utils/catchAsync';
-import { loginUser, registerUser } from '../services/authService';
+import { loginUser, registerUser, requestPasswordReset, resetPassword } from '../services/authService';
 import { User, Vendor } from '../models';
 import { ApiError } from '../utils/ApiError';
 
@@ -23,4 +23,19 @@ export const me = catchAsync(async (req: Request, res: Response) => {
   });
   if (!user) throw ApiError.notFound('User not found');
   res.status(200).json({ success: true, data: user });
+});
+
+export const forgotPassword = catchAsync(async (req: Request, res: Response) => {
+  await requestPasswordReset(req.body.email);
+  // Same response regardless of whether the email exists, to avoid leaking which emails are registered.
+  res.status(200).json({
+    success: true,
+    message: 'If an account exists for that email, a password reset link has been sent.'
+  });
+});
+
+export const resetPasswordHandler = catchAsync(async (req: Request, res: Response) => {
+  const { token, password } = req.body;
+  await resetPassword(token, password);
+  res.status(200).json({ success: true, message: 'Your password has been reset. You can now log in.' });
 });

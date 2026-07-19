@@ -13,7 +13,11 @@
     "seed": "sequelize-cli db:seed:all",
     "seed:undo": "sequelize-cli db:seed:undo:all"
   },
-  "keywords": ["marketplace", "ecommerce", "multi-vendor"],
+  "keywords": [
+    "marketplace",
+    "ecommerce",
+    "multi-vendor"
+  ],
   "author": "Teknulugy",
   "license": "UNLICENSED",
   "dependencies": {
@@ -28,6 +32,7 @@
     "morgan": "^1.10.0",
     "multer": "^1.4.5-lts.1",
     "mysql2": "^3.11.0",
+    "nodemailer": "^9.0.3",
     "sequelize": "^6.37.3",
     "slugify": "^1.6.6",
     "swagger-jsdoc": "^6.2.8",
@@ -42,6 +47,7 @@
     "@types/morgan": "^1.9.9",
     "@types/multer": "^1.4.11",
     "@types/node": "^20.14.10",
+    "@types/nodemailer": "^8.0.1",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.6",
     "@types/uuid": "^9.0.8",

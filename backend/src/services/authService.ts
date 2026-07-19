@@ -1,8 +1,16 @@
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import { ApiError } from '../utils/ApiError';
 import { signAccessToken, signRefreshToken } from '../utils/jwt';
 import { toSlug, uniqueSlug } from '../utils/slugify';
+import { sendMail } from '../utils/mailer';
 import { User, Vendor } from '../models';
+
+const RESET_TOKEN_TTL_MS = 60 * 60 * 1000; // 1 hour
+
+function hashToken(token: string) {
+  return crypto.createHash('sha256').update(token).digest('hex');
+}
 
 interface RegisterInput {
   first_name: string;
@@ -83,6 +91,47 @@ export async function loginUser(email: string, password: string) {
   if (user.status === 'suspended') throw ApiError.forbidden('This account has been suspended');
 
   return buildAuthResponse(user);
+}
+
+export async function requestPasswordReset(email: string) {
+  const user = await User.findOne({ where: { email } });
+
+  // Always behave the same way whether or not the account exists, so callers
+  // can't use this endpoint to discover which emails are registered.
+  if (!user) return;
+
+  const token = crypto.randomBytes(32).toString('hex');
+  user.password_reset_token_hash = hashToken(token);
+  user.password_reset_expires = new Date(Date.now() + RESET_TOKEN_TTL_MS);
+  await user.save();
+
+  const frontendUrl = process.env.CLIENT_STOREFRONT_URL || 'https://www.takhayir.com';
+  const resetLink = `${frontendUrl.replace(/\/$/, '')}/reset-password?token=${token}`;
+
+  await sendMail({
+    to: user.email,
+    subject: 'Reset your Takhayir password',
+    html: `
+      <p>Hi ${user.first_name},</p>
+      <p>We received a request to reset your Takhayir password. Click the link below to choose a new one:</p>
+      <p><a href="${resetLink}">${resetLink}</a></p>
+      <p>This link expires in 1 hour. If you didn't request this, you can safely ignore this email.</p>
+    `
+  });
+}
+
+export async function resetPassword(token: string, newPassword: string) {
+  const tokenHash = hashToken(token);
+  const user = await User.findOne({ where: { password_reset_token_hash: tokenHash } });
+
+  if (!user || !user.password_reset_expires || user.password_reset_expires.getTime() < Date.now()) {
+    throw ApiError.badRequest('This reset link is invalid or has expired. Please request a new one.');
+  }
+
+  user.password_hash = await bcrypt.hash(newPassword, 10);
+  user.password_reset_token_hash = null;
+  user.password_reset_expires = null;
+  await user.save();
 }
 
 export { toSlug };

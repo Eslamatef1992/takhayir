@@ -17,3 +17,12 @@ export const vendorRegisterValidator = [
   ...registerValidator,
   body('store_name').trim().notEmpty().withMessage('Store name is required')
 ];
+
+export const forgotPasswordValidator = [
+  body('email').isEmail().withMessage('Valid email is required').normalizeEmail()
+];
+
+export const resetPasswordValidator = [
+  body('token').trim().notEmpty().withMessage('Reset token is required'),
+  body('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters')
+];
