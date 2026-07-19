@@ -149,7 +149,7 @@ export default function CheckoutPage() {
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
             <span className="text-muted">Subtotal</span>
-            <span>SAR {total.toFixed(2)}</span>
+            <span>KWD {total.toFixed(3)}</span>
           </div>
           {error && <p className="error-text">{error}</p>}
           <button className="btn btn-primary" style={{ width: '100%', marginTop: 12 }} disabled={submitting} onClick={handleCheckout}>

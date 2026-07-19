@@ -43,7 +43,7 @@ export default function OrderDetailPage() {
           {group.items.map((item) => (
             <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0' }}>
               <span>{item.product_name_snapshot} &times; {item.quantity}</span>
-              <span>SAR {Number(item.total).toFixed(2)}</span>
+              <span>KWD {Number(item.total).toFixed(3)}</span>
             </div>
           ))}
         </div>

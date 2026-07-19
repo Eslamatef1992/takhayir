@@ -89,7 +89,7 @@ export async function checkout(input: CheckoutInput) {
         discount_total,
         tax_total,
         grand_total,
-        currency: 'SAR',
+        currency: 'KWD',
         status: 'pending',
         payment_status: 'unpaid',
         payment_method

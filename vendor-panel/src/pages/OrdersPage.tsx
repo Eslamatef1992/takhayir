@@ -56,11 +56,11 @@ export default function OrdersPage() {
             {g.items.map((item) => (
               <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, padding: '4px 0' }}>
                 <span>{item.product_name_snapshot} &times; {item.quantity}</span>
-                <span>SAR {Number(item.total).toFixed(2)}</span>
+                <span>KWD {Number(item.total).toFixed(3)}</span>
               </div>
             ))}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 }}>
-              <span className="text-muted" style={{ fontSize: 12 }}>Payout: SAR {Number(g.payout_amount).toFixed(2)}</span>
+              <span className="text-muted" style={{ fontSize: 12 }}>Payout: KWD {Number(g.payout_amount).toFixed(3)}</span>
               <select value={g.status} onChange={(e) => updateStatus(g.id, e.target.value)} style={{ width: 160 }}>
                 {STATUS_FLOW.map((s) => (
                   <option key={s} value={s}>{s}</option>

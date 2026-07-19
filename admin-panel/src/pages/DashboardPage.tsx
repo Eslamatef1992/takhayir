@@ -27,7 +27,7 @@ export default function DashboardPage() {
     { label: 'Products awaiting review', value: stats.pendingProducts },
     { label: 'Total orders', value: stats.totalOrders },
     { label: 'Customers', value: stats.totalCustomers },
-    { label: 'Total revenue (paid orders)', value: `SAR ${Number(stats.totalRevenue).toFixed(2)}` }
+    { label: 'Total revenue (paid orders)', value: `KWD ${Number(stats.totalRevenue).toFixed(3)}` }
   ];
 
   return (

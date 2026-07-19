@@ -48,7 +48,7 @@ export default function CouponsPage() {
                 <tr key={c.id}>
                   <td>{c.code}</td>
                   <td>{c.type}</td>
-                  <td>{c.type === 'percent' ? `${c.value}%` : `SAR ${c.value}`}</td>
+                  <td>{c.type === 'percent' ? `${c.value}%` : `KWD ${c.value}`}</td>
                   <td>{c.is_active ? 'Active' : 'Inactive'}</td>
                   <td><button className="btn btn-outline" onClick={() => handleDelete(c.id)}>Delete</button></td>
                 </tr>

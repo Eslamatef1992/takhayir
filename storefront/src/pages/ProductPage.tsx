@@ -110,10 +110,10 @@ export default function ProductPage() {
             </div>
           )}
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 16 }}>
-            <span style={{ fontSize: 26, fontWeight: 800 }}>SAR {Number(product.price).toFixed(2)}</span>
+            <span style={{ fontSize: 26, fontWeight: 800 }}>KWD {Number(product.price).toFixed(3)}</span>
             {product.compare_at_price && (
               <span className="text-muted" style={{ textDecoration: 'line-through' }}>
-                SAR {Number(product.compare_at_price).toFixed(2)}
+                KWD {Number(product.compare_at_price).toFixed(3)}
               </span>
             )}
           </div>

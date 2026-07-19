@@ -106,8 +106,8 @@ export default function ProductsPage() {
               </select>
             </div>
             <div className="form-group">
-              <label>Price (SAR)</label>
-              <input type="number" step="0.01" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} required />
+              <label>Price (KWD)</label>
+              <input type="number" step="0.001" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} required />
             </div>
             <div className="form-group">
               <label>Stock quantity</label>
@@ -153,7 +153,7 @@ export default function ProductsPage() {
                       )}
                     </td>
                     <td>{p.name}</td>
-                    <td>SAR {Number(p.price).toFixed(2)}</td>
+                    <td>KWD {Number(p.price).toFixed(3)}</td>
                     <td>{p.stock_quantity}</td>
                     <td><span className={`badge badge-${p.status}`}>{p.status}</span></td>
                     <td style={{ display: 'flex', gap: 6 }}>

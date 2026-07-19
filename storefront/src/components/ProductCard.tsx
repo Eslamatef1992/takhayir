@@ -36,8 +36,8 @@ export function ProductCard({ product }: { product: ProductSummary }) {
         {product.vendor && <div className="product-card-vendor">{product.vendor.store_name}</div>}
         <div className="product-card-name">{product.name}</div>
         <div className="product-card-price-row">
-          <span className="product-card-price">SAR {price.toFixed(2)}</span>
-          {comparePrice && <span className="product-card-compare">SAR {comparePrice.toFixed(2)}</span>}
+          <span className="product-card-price">KWD {price.toFixed(3)}</span>
+          {comparePrice && <span className="product-card-compare">KWD {comparePrice.toFixed(3)}</span>}
         </div>
         {Number(product.rating_count) > 0 && (
           <div className="product-card-rating">

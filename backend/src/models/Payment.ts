@@ -41,7 +41,7 @@ Payment.init(
     gateway: { type: DataTypes.ENUM('tap', 'deema', 'taly', 'cod'), allowNull: false },
     gateway_reference: { type: DataTypes.STRING(150), allowNull: true },
     amount: { type: DataTypes.DECIMAL(10, 2), allowNull: false },
-    currency: { type: DataTypes.STRING(10), allowNull: false, defaultValue: 'SAR' },
+    currency: { type: DataTypes.STRING(10), allowNull: false, defaultValue: 'KWD' },
     status: {
       type: DataTypes.ENUM('initiated', 'pending', 'captured', 'failed', 'cancelled', 'refunded'),
       allowNull: false, defaultValue: 'initiated'

@@ -62,7 +62,7 @@ Order.init(
     discount_total: { type: DataTypes.DECIMAL(10, 2), allowNull: false, defaultValue: 0 },
     tax_total: { type: DataTypes.DECIMAL(10, 2), allowNull: false, defaultValue: 0 },
     grand_total: { type: DataTypes.DECIMAL(10, 2), allowNull: false, defaultValue: 0 },
-    currency: { type: DataTypes.STRING(10), allowNull: false, defaultValue: 'SAR' },
+    currency: { type: DataTypes.STRING(10), allowNull: false, defaultValue: 'KWD' },
     status: {
       type: DataTypes.ENUM('pending', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded'),
       allowNull: false, defaultValue: 'pending'

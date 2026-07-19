@@ -50,7 +50,7 @@ export default function CartPage() {
               onChange={(e) => updateItem(item.id, Math.max(1, Number(e.target.value)))}
               className="cart-row-qty"
             />
-            <div className="cart-row-price">SAR {(Number(item.price_snapshot) * item.quantity).toFixed(2)}</div>
+            <div className="cart-row-price">KWD {(Number(item.price_snapshot) * item.quantity).toFixed(3)}</div>
             <button className="btn btn-outline btn-sm" onClick={() => removeItem(item.id)}>
               Remove
             </button>
@@ -69,7 +69,7 @@ export default function CartPage() {
         }}
       >
         <div style={{ fontSize: 18 }}>
-          Subtotal: <strong>SAR {total.toFixed(2)}</strong>
+          Subtotal: <strong>KWD {total.toFixed(3)}</strong>
         </div>
         <button className="btn btn-primary" onClick={() => navigate('/checkout')}>
           Proceed to checkout

@@ -65,7 +65,7 @@ export default function ProductsPage() {
                 <tr key={p.id}>
                   <td>{p.name}</td>
                   <td>{p.vendor?.store_name}</td>
-                  <td>SAR {Number(p.price).toFixed(2)}</td>
+                  <td>KWD {Number(p.price).toFixed(3)}</td>
                   <td><span className={`badge badge-${p.status}`}>{p.status}</span></td>
                   <td style={{ display: 'flex', gap: 6 }}>
                     {p.status !== 'active' && (
