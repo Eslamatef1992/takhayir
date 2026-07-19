@@ -4,7 +4,8 @@ import {
   updateVendorProfileValidator,
   vendorStatusValidator,
   commissionValidator,
-  adminCreateVendorValidator
+  adminCreateVendorValidator,
+  adminUpdateVendorValidator
 } from '../validators/vendorValidators';
 import { validateRequest } from '../middleware/validateRequest';
 import { authenticate } from '../middleware/auth';
@@ -163,6 +164,31 @@ router.patch(
   vendorStatusValidator,
   validateRequest,
   vendorController.updateVendorStatus
+);
+
+/**
+ * @openapi
+ * /api/vendors/{id}:
+ *   put:
+ *     tags: [Vendors]
+ *     summary: Edit a vendor's store details (admin only)
+ *     security: [{ bearerAuth: [] }]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     responses:
+ *       200: { description: Updated }
+ *       404: { description: Vendor not found }
+ */
+router.put(
+  '/:id',
+  authenticate,
+  requireRole('admin'),
+  adminUpdateVendorValidator,
+  validateRequest,
+  vendorController.adminUpdateVendor
 );
 
 /**

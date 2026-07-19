@@ -184,3 +184,54 @@ export const adminCreateVendor = catchAsync(async (req: Request, res: Response) 
     }
   });
 });
+
+// Admin edits any vendor's store details
+export const adminUpdateVendor = catchAsync(async (req: Request, res: Response) => {
+  const vendor = await Vendor.findByPk(req.params.id);
+  if (!vendor) throw ApiError.notFound('Vendor not found');
+
+  const {
+    owner_name,
+    store_name,
+    store_name_ar,
+    description,
+    business_type,
+    tax_number,
+    registration_number,
+    iban,
+    category_id,
+    business_license_url,
+    store_logo,
+    is_featured,
+    commission_rate
+  } = req.body;
+
+  if (store_name && store_name !== vendor.store_name) {
+    vendor.store_slug = await uniqueSlug(store_name, (s) =>
+      Vendor.findOne({ where: { store_slug: s, id: { [Op.ne]: vendor.id } } })
+    );
+    vendor.store_name = store_name;
+  }
+  if (store_name_ar !== undefined) vendor.store_name_ar = store_name_ar;
+  if (description !== undefined) vendor.description = description;
+  if (business_type !== undefined) vendor.business_type = business_type;
+  if (tax_number !== undefined) vendor.tax_number = tax_number;
+  if (registration_number !== undefined) vendor.registration_number = registration_number;
+  if (iban !== undefined) vendor.iban = iban;
+  if (category_id !== undefined) vendor.category_id = category_id;
+  if (business_license_url !== undefined) vendor.business_license_url = business_license_url;
+  if (store_logo !== undefined) vendor.store_logo = store_logo;
+  if (is_featured !== undefined) vendor.is_featured = is_featured;
+  if (commission_rate !== undefined) vendor.commission_rate = commission_rate;
+
+  await vendor.save();
+
+  if (owner_name) {
+    await User.update({ first_name: owner_name }, { where: { id: vendor.user_id } });
+  }
+
+  const updated = await Vendor.findByPk(vendor.id, {
+    include: [{ model: User, as: 'user', attributes: { exclude: ['password_hash'] } }]
+  });
+  res.json({ success: true, data: updated });
+});

@@ -1,18 +1,64 @@
-import { useEffect, useState } from 'react';
+import { ChangeEvent, FormEvent, useEffect, useRef, useState } from 'react';
 import { apiClient, ApiEnvelope } from '../api/client';
+
+interface Category {
+  id: number;
+  name: string;
+  parent_id: number | null;
+}
+
+interface Vendor {
+  id: number;
+  store_name: string;
+  status: string;
+}
 
 interface Product {
   id: number;
   name: string;
+  description: string | null;
+  sku: string | null;
   price: string;
+  compare_at_price: string | null;
+  stock_quantity: number;
+  weight_kg: string | null;
+  category_id: number | null;
   status: string;
-  vendor: { store_name: string };
+  vendor: { id: number; store_name: string };
+  images: { url: string; is_primary: boolean }[];
 }
+
+const API_ORIGIN = (import.meta.env.VITE_API_URL || 'http://localhost:4000/api').replace(/\/api\/?$/, '');
+
+const emptyForm = {
+  vendor_id: '',
+  name: '',
+  category_id: '',
+  price: '',
+  compare_at_price: '',
+  stock_quantity: '',
+  weight_kg: '',
+  sku: '',
+  description: ''
+};
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
-  const [filter, setFilter] = useState('pending');
+  const [vendors, setVendors] = useState<Vendor[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [filter, setFilter] = useState('');
   const [loading, setLoading] = useState(true);
+
+  const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [form, setForm] = useState(emptyForm);
+  const [formError, setFormError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [pendingImage, setPendingImage] = useState<File | null>(null);
+  const newImageInputRef = useRef<HTMLInputElement | null>(null);
+
+  const uploadInputRef = useRef<HTMLInputElement | null>(null);
+  const [uploadTargetId, setUploadTargetId] = useState<number | null>(null);
 
   function load() {
     setLoading(true);
@@ -24,6 +70,95 @@ export default function ProductsPage() {
 
   useEffect(load, [filter]);
 
+  useEffect(() => {
+    apiClient.get<ApiEnvelope<Vendor[]>>('/vendors/admin/all').then((res) => setVendors(res.data.data));
+    apiClient.get<ApiEnvelope<Category[]>>('/categories', { params: { flat: true } }).then((res) => setCategories(res.data.data));
+  }, []);
+
+  function openAddForm() {
+    setEditingId(null);
+    setForm(emptyForm);
+    setPendingImage(null);
+    setFormError('');
+    setShowForm(true);
+  }
+
+  function openEditForm(p: Product) {
+    setEditingId(p.id);
+    setForm({
+      vendor_id: String(p.vendor.id),
+      name: p.name,
+      category_id: p.category_id ? String(p.category_id) : '',
+      price: p.price,
+      compare_at_price: p.compare_at_price || '',
+      stock_quantity: String(p.stock_quantity ?? 0),
+      weight_kg: p.weight_kg || '',
+      sku: p.sku || '',
+      description: p.description || ''
+    });
+    setPendingImage(null);
+    setFormError('');
+    setShowForm(true);
+  }
+
+  function closeForm() {
+    setShowForm(false);
+    setEditingId(null);
+    setForm(emptyForm);
+    setPendingImage(null);
+    setFormError('');
+  }
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    setFormError('');
+    setSubmitting(true);
+    try {
+      const payload = {
+        name: form.name,
+        category_id: form.category_id ? Number(form.category_id) : null,
+        price: Number(form.price),
+        compare_at_price: form.compare_at_price ? Number(form.compare_at_price) : null,
+        stock_quantity: form.stock_quantity ? Number(form.stock_quantity) : 0,
+        weight_kg: form.weight_kg ? Number(form.weight_kg) : null,
+        sku: form.sku || null,
+        description: form.description || null
+      };
+
+      let productId = editingId;
+      if (editingId) {
+        await apiClient.put(`/products/admin/${editingId}`, { ...payload, vendor_id: Number(form.vendor_id) });
+      } else {
+        const res = await apiClient.post<ApiEnvelope<{ id: number }>>('/products/admin', {
+          ...payload,
+          vendor_id: Number(form.vendor_id)
+        });
+        productId = res.data.data.id;
+      }
+
+      if (pendingImage && productId) {
+        const data = new FormData();
+        data.append('image', pendingImage);
+        await apiClient.post(`/products/admin/${productId}/images`, data, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+      }
+
+      closeForm();
+      load();
+    } catch (err: any) {
+      setFormError(err?.response?.data?.message || 'Could not save product. Please check the fields and try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function handleDelete(id: number) {
+    if (!window.confirm('Delete this product?')) return;
+    await apiClient.delete(`/products/admin/${id}`);
+    load();
+  }
+
   async function updateStatus(id: number, status: string) {
     let rejection_reason: string | undefined;
     if (status === 'rejected') {
@@ -33,18 +168,145 @@ export default function ProductsPage() {
     load();
   }
 
+  function triggerUpload(id: number) {
+    setUploadTargetId(id);
+    uploadInputRef.current?.click();
+  }
+
+  async function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !uploadTargetId) return;
+    const data = new FormData();
+    data.append('image', file);
+    await apiClient.post(`/products/admin/${uploadTargetId}/images`, data, { headers: { 'Content-Type': 'multipart/form-data' } });
+    e.target.value = '';
+    load();
+  }
+
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <h1 style={{ fontSize: 20 }}>Products</h1>
-        <select value={filter} onChange={(e) => setFilter(e.target.value)} style={{ width: 200 }}>
-          <option value="">All statuses</option>
-          <option value="pending">Pending review</option>
-          <option value="active">Active</option>
-          <option value="rejected">Rejected</option>
-          <option value="archived">Archived</option>
-        </select>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <select value={filter} onChange={(e) => setFilter(e.target.value)} style={{ width: 200 }}>
+            <option value="">All statuses</option>
+            <option value="pending">Pending review</option>
+            <option value="active">Active</option>
+            <option value="rejected">Rejected</option>
+            <option value="archived">Archived</option>
+          </select>
+          <button className="btn btn-primary" onClick={() => (showForm ? closeForm() : openAddForm())}>
+            {showForm ? 'Cancel' : '+ Add product'}
+          </button>
+        </div>
       </div>
+
+      {showForm && (
+        <form onSubmit={handleSubmit} className="card" style={{ padding: 20, marginBottom: 20 }}>
+          <h2 style={{ fontSize: 16, marginBottom: 16 }}>{editingId ? 'Edit product' : 'Add product'}</h2>
+
+          {formError && <p style={{ color: '#c0392b', fontSize: 13, marginBottom: 14 }}>{formError}</p>}
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+            <div className="form-group">
+              <label>Vendor</label>
+              <select value={form.vendor_id} onChange={(e) => setForm((f) => ({ ...f, vendor_id: e.target.value }))} required>
+                <option value="">— Select vendor —</option>
+                {vendors.map((v) => (
+                  <option key={v.id} value={v.id}>{v.store_name}{v.status !== 'approved' ? ` (${v.status})` : ''}</option>
+                ))}
+              </select>
+            </div>
+            <div className="form-group">
+              <label>Name</label>
+              <input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} required />
+            </div>
+
+            <div className="form-group">
+              <label>Category</label>
+              <select value={form.category_id} onChange={(e) => setForm((f) => ({ ...f, category_id: e.target.value }))}>
+                <option value="">— Select —</option>
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.parent_id ? '— ' : ''}
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="form-group">
+              <label>SKU</label>
+              <input value={form.sku} onChange={(e) => setForm((f) => ({ ...f, sku: e.target.value }))} />
+            </div>
+
+            <div className="form-group">
+              <label>Price (KWD)</label>
+              <input
+                type="number"
+                step="0.001"
+                value={form.price}
+                onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label>Compare-at price (KWD)</label>
+              <input
+                type="number"
+                step="0.001"
+                value={form.compare_at_price}
+                onChange={(e) => setForm((f) => ({ ...f, compare_at_price: e.target.value }))}
+                placeholder="Optional"
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Stock quantity</label>
+              <input
+                type="number"
+                value={form.stock_quantity}
+                onChange={(e) => setForm((f) => ({ ...f, stock_quantity: e.target.value }))}
+              />
+            </div>
+            <div className="form-group">
+              <label>Weight (kg)</label>
+              <input
+                type="number"
+                step="0.01"
+                value={form.weight_kg}
+                onChange={(e) => setForm((f) => ({ ...f, weight_kg: e.target.value }))}
+                placeholder="Optional"
+              />
+            </div>
+
+            <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+              <label>Description</label>
+              <textarea rows={3} value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} />
+            </div>
+
+            <div className="form-group">
+              <label>{editingId ? 'Add another image' : 'Product image'}</label>
+              <input
+                type="file"
+                accept="image/*"
+                ref={newImageInputRef}
+                onChange={(e) => setPendingImage(e.target.files?.[0] || null)}
+              />
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: 10, marginTop: 18 }}>
+            <button className="btn btn-primary" disabled={submitting}>
+              {submitting ? 'Saving...' : editingId ? 'Save changes' : 'Create product'}
+            </button>
+            <button type="button" className="btn btn-outline" onClick={closeForm}>
+              Cancel
+            </button>
+          </div>
+        </form>
+      )}
+
+      <input type="file" accept="image/*" ref={uploadInputRef} style={{ display: 'none' }} onChange={handleFileChange} />
 
       {loading ? (
         <div className="spinner">Loading...</div>
@@ -53,6 +315,7 @@ export default function ProductsPage() {
           <table>
             <thead>
               <tr>
+                <th>Image</th>
                 <th>Product</th>
                 <th>Vendor</th>
                 <th>Price</th>
@@ -61,25 +324,38 @@ export default function ProductsPage() {
               </tr>
             </thead>
             <tbody>
-              {products.map((p) => (
-                <tr key={p.id}>
-                  <td>{p.name}</td>
-                  <td>{p.vendor?.store_name}</td>
-                  <td>KWD {Number(p.price).toFixed(3)}</td>
-                  <td><span className={`badge badge-${p.status}`}>{p.status}</span></td>
-                  <td style={{ display: 'flex', gap: 6 }}>
-                    {p.status !== 'active' && (
-                      <button className="btn btn-success" onClick={() => updateStatus(p.id, 'active')}>Approve</button>
-                    )}
-                    {p.status !== 'rejected' && (
-                      <button className="btn btn-danger" onClick={() => updateStatus(p.id, 'rejected')}>Reject</button>
-                    )}
-                  </td>
-                </tr>
-              ))}
+              {products.map((p) => {
+                const img = p.images?.find((i) => i.is_primary) || p.images?.[0];
+                return (
+                  <tr key={p.id}>
+                    <td>
+                      {img ? (
+                        <img src={`${API_ORIGIN}${img.url}`} alt="" style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 6 }} />
+                      ) : (
+                        <span className="text-muted" style={{ fontSize: 11 }}>None</span>
+                      )}
+                    </td>
+                    <td>{p.name}</td>
+                    <td>{p.vendor?.store_name}</td>
+                    <td>KWD {Number(p.price).toFixed(3)}</td>
+                    <td><span className={`badge badge-${p.status}`}>{p.status}</span></td>
+                    <td style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                      <button className="btn btn-outline" onClick={() => openEditForm(p)}>Edit</button>
+                      <button className="btn btn-outline" onClick={() => triggerUpload(p.id)}>Upload image</button>
+                      {p.status !== 'active' && (
+                        <button className="btn btn-success" onClick={() => updateStatus(p.id, 'active')}>Approve</button>
+                      )}
+                      {p.status !== 'rejected' && (
+                        <button className="btn btn-danger" onClick={() => updateStatus(p.id, 'rejected')}>Reject</button>
+                      )}
+                      <button className="btn btn-danger" onClick={() => handleDelete(p.id)}>Delete</button>
+                    </td>
+                  </tr>
+                );
+              })}
               {products.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="text-muted">No products found.</td>
+                  <td colSpan={6} className="text-muted">No products found.</td>
                 </tr>
               )}
             </tbody>

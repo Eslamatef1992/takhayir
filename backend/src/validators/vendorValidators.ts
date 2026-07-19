@@ -20,6 +20,22 @@ export const commissionValidator = [
   body('commission_rate').isFloat({ min: 0, max: 100 }).withMessage('commission_rate must be between 0 and 100')
 ];
 
+export const adminUpdateVendorValidator = [
+  body('owner_name').optional().trim().notEmpty(),
+  body('store_name').optional().trim().notEmpty(),
+  body('store_name_ar').optional({ nullable: true }).isString(),
+  body('description').optional({ nullable: true }).isString(),
+  body('business_type').optional({ nullable: true }).isString(),
+  body('tax_number').optional({ nullable: true }).isString(),
+  body('registration_number').optional({ nullable: true }).isString(),
+  body('iban').optional({ nullable: true }).isString(),
+  body('category_id').optional({ nullable: true }).isInt().withMessage('category_id must be an integer'),
+  body('business_license_url').optional({ nullable: true }).isString(),
+  body('store_logo').optional({ nullable: true }).isString(),
+  body('is_featured').optional().isBoolean(),
+  body('commission_rate').optional().isFloat({ min: 0, max: 100 }).withMessage('commission_rate must be between 0 and 100')
+];
+
 export const adminCreateVendorValidator = [
   body('owner_name').trim().notEmpty().withMessage('Owner name is required'),
   body('email').isEmail().withMessage('A valid email is required').normalizeEmail(),

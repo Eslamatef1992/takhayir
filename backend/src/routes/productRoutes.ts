@@ -1,6 +1,11 @@
 import { Router } from 'express';
 import * as productController from '../controllers/productController';
-import { createProductValidator, updateProductValidator, productStatusValidator } from '../validators/productValidators';
+import {
+  createProductValidator,
+  updateProductValidator,
+  productStatusValidator,
+  adminCreateProductValidator
+} from '../validators/productValidators';
 import { validateRequest } from '../middleware/validateRequest';
 import { authenticate } from '../middleware/auth';
 import { requireRole } from '../middleware/roles';
@@ -94,6 +99,110 @@ router.get('/mine', authenticate, requireRole('vendor'), productController.listM
  *       200: { description: Product list }
  */
 router.get('/admin/all', authenticate, requireRole('admin'), productController.adminListProducts);
+
+/**
+ * @openapi
+ * /api/products/admin:
+ *   post:
+ *     tags: [Products]
+ *     summary: Create a product on behalf of any vendor (admin only)
+ *     security: [{ bearerAuth: [] }]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [vendor_id, name, price]
+ *             properties:
+ *               vendor_id: { type: integer }
+ *               name: { type: string }
+ *               category_id: { type: integer }
+ *               price: { type: number }
+ *               compare_at_price: { type: number }
+ *               stock_quantity: { type: integer }
+ *               description: { type: string }
+ *               sku: { type: string }
+ *               status: { type: string, enum: [draft, pending, active, rejected, archived] }
+ *               images: { type: array, items: { type: string } }
+ *     responses:
+ *       201: { description: Created }
+ */
+router.post(
+  '/admin',
+  authenticate,
+  requireRole('admin'),
+  adminCreateProductValidator,
+  validateRequest,
+  productController.adminCreateProduct
+);
+
+/**
+ * @openapi
+ * /api/products/admin/{id}:
+ *   put:
+ *     tags: [Products]
+ *     summary: Edit any product regardless of vendor ownership (admin only)
+ *     security: [{ bearerAuth: [] }]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     responses:
+ *       200: { description: Updated }
+ *   delete:
+ *     tags: [Products]
+ *     summary: Delete any product (admin only)
+ *     security: [{ bearerAuth: [] }]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     responses:
+ *       204: { description: Deleted }
+ */
+router.put(
+  '/admin/:id',
+  authenticate,
+  requireRole('admin'),
+  updateProductValidator,
+  validateRequest,
+  productController.adminUpdateProduct
+);
+router.delete('/admin/:id', authenticate, requireRole('admin'), productController.adminDeleteProduct);
+
+/**
+ * @openapi
+ * /api/products/admin/{id}/images:
+ *   post:
+ *     tags: [Products]
+ *     summary: Upload an image for any product (admin only)
+ *     security: [{ bearerAuth: [] }]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               image: { type: string, format: binary }
+ *     responses:
+ *       201: { description: Image added }
+ */
+router.post(
+  '/admin/:id/images',
+  authenticate,
+  requireRole('admin'),
+  upload.single('image'),
+  productController.adminAddProductImage
+);
 
 /**
  * @openapi

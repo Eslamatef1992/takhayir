@@ -4,7 +4,12 @@ import { apiClient, ApiEnvelope } from '../api/client';
 interface Vendor {
   id: number;
   store_name: string;
+  store_name_ar: string | null;
   store_slug: string;
+  store_logo: string | null;
+  iban: string | null;
+  category_id: number | null;
+  business_license_url: string | null;
   status: 'pending' | 'approved' | 'suspended' | 'rejected';
   commission_rate: string;
   is_featured: boolean;
@@ -40,6 +45,7 @@ export default function VendorsPage() {
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
@@ -121,15 +127,46 @@ export default function VendorsPage() {
     }
   }
 
-  async function handleCreate(e: FormEvent) {
+  function openAddForm() {
+    setEditingId(null);
+    setForm(emptyForm);
+    setFormError('');
+    setShowForm(true);
+  }
+
+  function openEditForm(v: Vendor) {
+    setEditingId(v.id);
+    setForm({
+      owner_name: v.user?.first_name || '',
+      email: v.user?.email || '',
+      password: '',
+      store_name: v.store_name,
+      store_name_ar: v.store_name_ar || '',
+      iban: v.iban || '',
+      category_id: v.category_id ? String(v.category_id) : '',
+      commission_rate: v.commission_rate,
+      is_featured: v.is_featured,
+      store_logo: v.store_logo || '',
+      business_license_url: v.business_license_url || ''
+    });
+    setFormError('');
+    setShowForm(true);
+  }
+
+  function closeForm() {
+    setShowForm(false);
+    setEditingId(null);
+    setForm(emptyForm);
+    setFormError('');
+  }
+
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setFormError('');
     setSubmitting(true);
     try {
-      await apiClient.post('/vendors', {
+      const payload = {
         owner_name: form.owner_name,
-        email: form.email,
-        password: form.password,
         store_name: form.store_name,
         store_name_ar: form.store_name_ar || null,
         iban: form.iban || null,
@@ -138,12 +175,17 @@ export default function VendorsPage() {
         is_featured: form.is_featured,
         store_logo: form.store_logo || null,
         business_license_url: form.business_license_url || null
-      });
-      setForm(emptyForm);
-      setShowForm(false);
+      };
+
+      if (editingId) {
+        await apiClient.put(`/vendors/${editingId}`, payload);
+      } else {
+        await apiClient.post('/vendors', { ...payload, email: form.email, password: form.password });
+      }
+      closeForm();
       load();
     } catch (err: any) {
-      setFormError(err?.response?.data?.message || 'Could not create vendor. Please check the fields and try again.');
+      setFormError(err?.response?.data?.message || 'Could not save vendor. Please check the fields and try again.');
     } finally {
       setSubmitting(false);
     }
@@ -161,15 +203,15 @@ export default function VendorsPage() {
             <option value="suspended">Suspended</option>
             <option value="rejected">Rejected</option>
           </select>
-          <button className="btn btn-primary" onClick={() => setShowForm((s) => !s)}>
+          <button className="btn btn-primary" onClick={() => (showForm ? closeForm() : openAddForm())}>
             {showForm ? 'Cancel' : '+ Add vendor'}
           </button>
         </div>
       </div>
 
       {showForm && (
-        <form onSubmit={handleCreate} className="card" style={{ padding: 20, marginBottom: 20 }}>
-          <h2 style={{ fontSize: 16, marginBottom: 16 }}>Add vendor</h2>
+        <form onSubmit={handleSubmit} className="card" style={{ padding: 20, marginBottom: 20 }}>
+          <h2 style={{ fontSize: 16, marginBottom: 16 }}>{editingId ? 'Edit vendor' : 'Add vendor'}</h2>
 
           {formError && (
             <p style={{ color: '#c0392b', fontSize: 13, marginBottom: 14 }}>{formError}</p>
@@ -184,27 +226,36 @@ export default function VendorsPage() {
                 required
               />
             </div>
-            <div className="form-group">
-              <label>Login email</label>
-              <input
-                type="email"
-                value={form.email}
-                onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                required
-              />
-            </div>
+            {editingId ? (
+              <div className="form-group">
+                <label>Login email</label>
+                <input value={form.email} disabled style={{ opacity: 0.6 }} />
+              </div>
+            ) : (
+              <div className="form-group">
+                <label>Login email</label>
+                <input
+                  type="email"
+                  value={form.email}
+                  onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+                  required
+                />
+              </div>
+            )}
 
-            <div className="form-group">
-              <label>Login password</label>
-              <input
-                type="password"
-                value={form.password}
-                onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
-                minLength={8}
-                placeholder="Min 8 characters"
-                required
-              />
-            </div>
+            {!editingId && (
+              <div className="form-group">
+                <label>Login password</label>
+                <input
+                  type="password"
+                  value={form.password}
+                  onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
+                  minLength={8}
+                  placeholder="Min 8 characters"
+                  required
+                />
+              </div>
+            )}
             <div className="form-group">
               <label>Vendor name (English)</label>
               <input
@@ -300,9 +351,14 @@ export default function VendorsPage() {
             </div>
           </div>
 
-          <button className="btn btn-primary" style={{ marginTop: 18 }} disabled={submitting || logoUploading || licenseUploading}>
-            {submitting ? 'Creating...' : 'Create vendor'}
-          </button>
+          <div style={{ display: 'flex', gap: 10, marginTop: 18 }}>
+            <button className="btn btn-primary" disabled={submitting || logoUploading || licenseUploading}>
+              {submitting ? 'Saving...' : editingId ? 'Save changes' : 'Create vendor'}
+            </button>
+            <button type="button" className="btn btn-outline" onClick={closeForm}>
+              Cancel
+            </button>
+          </div>
         </form>
       )}
 
@@ -341,7 +397,8 @@ export default function VendorsPage() {
                       {v.is_featured ? '★ Featured' : '☆ Feature'}
                     </button>
                   </td>
-                  <td style={{ display: 'flex', gap: 6 }}>
+                  <td style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    <button className="btn btn-outline" onClick={() => openEditForm(v)}>Edit</button>
                     {v.status !== 'approved' && (
                       <button className="btn btn-success" onClick={() => updateStatus(v.id, 'approved')}>Approve</button>
                     )}

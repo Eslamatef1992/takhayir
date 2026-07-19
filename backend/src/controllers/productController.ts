@@ -214,3 +214,121 @@ export const updateProductStatus = catchAsync(async (req: Request, res: Response
 
   res.json({ success: true, data: product });
 });
+
+// Admin creates a product on behalf of any vendor
+export const adminCreateProduct = catchAsync(async (req: Request, res: Response) => {
+  const {
+    vendor_id,
+    name,
+    description,
+    sku,
+    category_id,
+    price,
+    compare_at_price,
+    stock_quantity,
+    weight_kg,
+    status,
+    images,
+    variants
+  } = req.body;
+
+  const vendor = await Vendor.findByPk(vendor_id);
+  if (!vendor) throw ApiError.notFound('Vendor not found');
+
+  const slug = await uniqueSlug(name, (s) => Product.findOne({ where: { slug: s } }));
+
+  const product = await Product.create({
+    vendor_id: vendor.id,
+    category_id: category_id ?? null,
+    name,
+    slug,
+    description: description ?? null,
+    sku: sku ?? null,
+    price,
+    compare_at_price: compare_at_price ?? null,
+    stock_quantity: stock_quantity ?? 0,
+    weight_kg: weight_kg ?? null,
+    status: status ?? 'active'
+  });
+
+  if (Array.isArray(images) && images.length) {
+    await ProductImage.bulkCreate(
+      images.map((url: string, idx: number) => ({
+        product_id: product.id,
+        url,
+        sort_order: idx,
+        is_primary: idx === 0
+      }))
+    );
+  }
+
+  if (Array.isArray(variants) && variants.length) {
+    await ProductVariant.bulkCreate(
+      variants.map((v: any) => ({
+        product_id: product.id,
+        name: v.name,
+        sku: v.sku ?? null,
+        price: v.price ?? null,
+        stock_quantity: v.stock_quantity ?? 0,
+        attributes: v.attributes ?? null
+      }))
+    );
+  }
+
+  const created = await Product.findByPk(product.id, { include: publicIncludes });
+  res.status(201).json({ success: true, data: created });
+});
+
+// Admin edits any product regardless of vendor ownership
+export const adminUpdateProduct = catchAsync(async (req: Request, res: Response) => {
+  const product = await Product.findByPk(req.params.id);
+  if (!product) throw ApiError.notFound('Product not found');
+
+  const { name, description, sku, category_id, price, compare_at_price, stock_quantity, weight_kg, vendor_id, status } = req.body;
+
+  if (name && name !== product.name) {
+    product.slug = await uniqueSlug(name, (s) => Product.findOne({ where: { slug: s, id: { [Op.ne]: product.id } } }));
+    product.name = name;
+  }
+  if (description !== undefined) product.description = description;
+  if (sku !== undefined) product.sku = sku;
+  if (category_id !== undefined) product.category_id = category_id;
+  if (price !== undefined) product.price = price;
+  if (compare_at_price !== undefined) product.compare_at_price = compare_at_price;
+  if (stock_quantity !== undefined) product.stock_quantity = stock_quantity;
+  if (weight_kg !== undefined) product.weight_kg = weight_kg;
+  if (status !== undefined) product.status = status;
+  if (vendor_id !== undefined) {
+    const vendor = await Vendor.findByPk(vendor_id);
+    if (!vendor) throw ApiError.notFound('Vendor not found');
+    product.vendor_id = vendor_id;
+  }
+
+  await product.save();
+  const updated = await Product.findByPk(product.id, { include: publicIncludes });
+  res.json({ success: true, data: updated });
+});
+
+export const adminDeleteProduct = catchAsync(async (req: Request, res: Response) => {
+  const product = await Product.findByPk(req.params.id);
+  if (!product) throw ApiError.notFound('Product not found');
+  await product.destroy();
+  res.status(204).send();
+});
+
+export const adminAddProductImage = catchAsync(async (req: Request, res: Response) => {
+  const product = await Product.findByPk(req.params.id);
+  if (!product) throw ApiError.notFound('Product not found');
+  if (!req.file) throw ApiError.badRequest('No image file uploaded');
+
+  const url = `/uploads/${req.file.filename}`;
+  const count = await ProductImage.count({ where: { product_id: product.id } });
+  const image = await ProductImage.create({
+    product_id: product.id,
+    url,
+    sort_order: count,
+    is_primary: count === 0
+  });
+
+  res.status(201).json({ success: true, data: image });
+});
