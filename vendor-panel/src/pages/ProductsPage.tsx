@@ -1,5 +1,6 @@
-import { ChangeEvent, FormEvent, useEffect, useRef, useState } from 'react';
+import { ChangeEvent, FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { apiClient, ApiEnvelope } from '../api/client';
+import { getAttributeFieldsForCategory } from '../data/categoryAttributes';
 
 interface Category {
   id: number;
@@ -24,8 +25,12 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [form, setForm] = useState({ name: '', description: '', price: '', stock_quantity: '', category_id: '' });
+  const [attributeValues, setAttributeValues] = useState<Record<string, string>>({});
   const uploadInputRef = useRef<HTMLInputElement | null>(null);
   const [uploadTargetId, setUploadTargetId] = useState<number | null>(null);
+
+  const selectedCategoryName = categories.find((c) => String(c.id) === form.category_id)?.name;
+  const attributeFields = useMemo(() => getAttributeFieldsForCategory(selectedCategoryName), [selectedCategoryName]);
 
   function load() {
     setLoading(true);
@@ -43,15 +48,18 @@ export default function ProductsPage() {
   async function handleCreate(e: FormEvent) {
     e.preventDefault();
     setError('');
+    const attributes = Object.fromEntries(Object.entries(attributeValues).filter(([, v]) => v));
     try {
       await apiClient.post('/products', {
         name: form.name,
         description: form.description,
         price: Number(form.price),
         stock_quantity: Number(form.stock_quantity || 0),
-        category_id: form.category_id ? Number(form.category_id) : null
+        category_id: form.category_id ? Number(form.category_id) : null,
+        attributes: Object.keys(attributes).length ? attributes : null
       });
       setForm({ name: '', description: '', price: '', stock_quantity: '', category_id: '' });
+      setAttributeValues({});
       setShowForm(false);
       load();
     } catch (err: any) {
@@ -98,7 +106,13 @@ export default function ProductsPage() {
             </div>
             <div className="form-group">
               <label>Category</label>
-              <select value={form.category_id} onChange={(e) => setForm({ ...form, category_id: e.target.value })}>
+              <select
+                value={form.category_id}
+                onChange={(e) => {
+                  setForm({ ...form, category_id: e.target.value });
+                  setAttributeValues({});
+                }}
+              >
                 <option value="">— Select —</option>
                 {categories.map((c) => (
                   <option key={c.id} value={c.id}>{c.name}</option>
@@ -113,6 +127,30 @@ export default function ProductsPage() {
               <label>Stock quantity</label>
               <input type="number" value={form.stock_quantity} onChange={(e) => setForm({ ...form, stock_quantity: e.target.value })} />
             </div>
+            {attributeFields.map((f) =>
+              f.type === 'select' ? (
+                <div className="form-group" key={f.key}>
+                  <label>{f.label}</label>
+                  <select
+                    value={attributeValues[f.key] || ''}
+                    onChange={(e) => setAttributeValues((v) => ({ ...v, [f.key]: e.target.value }))}
+                  >
+                    <option value="">— Select —</option>
+                    {f.options?.map((opt) => (
+                      <option key={opt} value={opt}>{opt}</option>
+                    ))}
+                  </select>
+                </div>
+              ) : (
+                <div className="form-group" key={f.key}>
+                  <label>{f.label}</label>
+                  <input
+                    value={attributeValues[f.key] || ''}
+                    onChange={(e) => setAttributeValues((v) => ({ ...v, [f.key]: e.target.value }))}
+                  />
+                </div>
+              )
+            )}
           </div>
           <div className="form-group">
             <label>Description</label>

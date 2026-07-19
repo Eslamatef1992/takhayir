@@ -10,7 +10,8 @@ export const createProductValidator = [
   body('stock_quantity').optional().isInt({ min: 0 }),
   body('weight_kg').optional({ nullable: true }).isFloat({ min: 0 }),
   body('images').optional().isArray(),
-  body('variants').optional().isArray()
+  body('variants').optional().isArray(),
+  body('attributes').optional({ nullable: true }).isObject()
 ];
 
 export const updateProductValidator = [
@@ -21,7 +22,8 @@ export const updateProductValidator = [
   body('sku').optional().isString(),
   body('compare_at_price').optional({ nullable: true }).isFloat({ min: 0 }),
   body('stock_quantity').optional().isInt({ min: 0 }),
-  body('weight_kg').optional({ nullable: true }).isFloat({ min: 0 })
+  body('weight_kg').optional({ nullable: true }).isFloat({ min: 0 }),
+  body('attributes').optional({ nullable: true }).isObject()
 ];
 
 export const adminCreateProductValidator = [
@@ -36,7 +38,8 @@ export const adminCreateProductValidator = [
   body('weight_kg').optional({ nullable: true }).isFloat({ min: 0 }),
   body('status').optional().isIn(['draft', 'pending', 'active', 'rejected', 'archived']),
   body('images').optional().isArray(),
-  body('variants').optional().isArray()
+  body('variants').optional().isArray(),
+  body('attributes').optional({ nullable: true }).isObject()
 ];
 
 export const productStatusValidator = [

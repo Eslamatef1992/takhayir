@@ -1,14 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { apiClient, ApiEnvelope } from '../api/client';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import { FacebookIcon, HeartIcon, MailIcon, TwitterIcon, WhatsAppIcon } from '../components/Icons';
 
 interface ProductDetail {
   id: number;
   name: string;
   slug: string;
   description: string | null;
+  sku: string | null;
+  attributes: Record<string, string> | null;
   price: string;
   compare_at_price: string | null;
   stock_quantity: number;
@@ -28,7 +31,13 @@ interface Review {
   author: { first_name: string; last_name: string | null };
 }
 
+interface WishlistItem {
+  id: number;
+  product: { id: number };
+}
+
 const API_ORIGIN = (import.meta.env.VITE_API_URL || 'http://localhost:4000/api').replace(/\/api\/?$/, '');
+const DESCRIPTION_PREVIEW_LENGTH = 220;
 
 export default function ProductPage() {
   const { slug } = useParams();
@@ -37,24 +46,53 @@ export default function ProductPage() {
   const [product, setProduct] = useState<ProductDetail | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [activeImage, setActiveImage] = useState(0);
+  const [selectedVariantId, setSelectedVariantId] = useState<number | null>(null);
   const [qty, setQty] = useState(1);
   const [adding, setAdding] = useState(false);
   const [message, setMessage] = useState('');
+  const [descExpanded, setDescExpanded] = useState(false);
+  const [wishlistItemId, setWishlistItemId] = useState<number | null>(null);
+  const [wishlistBusy, setWishlistBusy] = useState(false);
 
   useEffect(() => {
     if (!slug) return;
+    setActiveImage(0);
+    setQty(1);
+    setDescExpanded(false);
     apiClient.get<ApiEnvelope<ProductDetail>>(`/products/${slug}`).then((res) => {
-      setProduct(res.data.data);
-      apiClient
-        .get<ApiEnvelope<Review[]>>(`/reviews/product/${res.data.data.id}`)
-        .then((r) => setReviews(r.data.data));
+      const p = res.data.data;
+      setProduct(p);
+      setSelectedVariantId(p.variants?.[0]?.id ?? null);
+      apiClient.get<ApiEnvelope<Review[]>>(`/reviews/product/${p.id}`).then((r) => setReviews(r.data.data));
+
+      if (user) {
+        apiClient.get<ApiEnvelope<WishlistItem[]>>('/wishlist').then((res2) => {
+          const match = res2.data.data.find((w) => w.product.id === p.id);
+          setWishlistItemId(match ? match.id : null);
+        });
+      }
     });
-  }, [slug]);
+  }, [slug, user]);
+
+  const selectedVariant = useMemo(
+    () => product?.variants.find((v) => v.id === selectedVariantId) || null,
+    [product, selectedVariantId]
+  );
 
   if (!product) return <div className="spinner">Loading...</div>;
 
   const image = product.images[activeImage];
   const imageUrl = image ? `${API_ORIGIN}${image.url}` : null;
+  const price = selectedVariant?.price ? Number(selectedVariant.price) : Number(product.price);
+  const comparePrice = product.compare_at_price ? Number(product.compare_at_price) : null;
+  const discountPct = comparePrice && comparePrice > price ? Math.round(((comparePrice - price) / comparePrice) * 100) : null;
+  const stock = selectedVariant ? selectedVariant.stock_quantity : product.stock_quantity;
+  const inStock = stock > 0;
+  const talyInstallment = price / 4;
+  const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
+  const description = product.description || '';
+  const isLongDescription = description.length > DESCRIPTION_PREVIEW_LENGTH;
+  const shownDescription = descExpanded || !isLongDescription ? description : `${description.slice(0, DESCRIPTION_PREVIEW_LENGTH)}...`;
 
   async function handleAddToCart() {
     if (!user) {
@@ -63,7 +101,7 @@ export default function ProductPage() {
     }
     setAdding(true);
     try {
-      await addItem(product!.id, qty);
+      await addItem(product!.id, qty, selectedVariant?.id);
       setMessage('Added to cart!');
     } catch {
       setMessage('Could not add to cart.');
@@ -72,70 +110,207 @@ export default function ProductPage() {
     }
   }
 
+  async function handleToggleWishlist() {
+    if (!user) {
+      setMessage('Please log in to save items to your wishlist.');
+      return;
+    }
+    setWishlistBusy(true);
+    try {
+      if (wishlistItemId) {
+        await apiClient.delete(`/wishlist/${wishlistItemId}`);
+        setWishlistItemId(null);
+      } else {
+        const res = await apiClient.post<ApiEnvelope<{ id: number }>>('/wishlist', { product_id: product!.id });
+        setWishlistItemId(res.data.data.id);
+      }
+    } finally {
+      setWishlistBusy(false);
+    }
+  }
+
   return (
     <div>
+      <div className="pdp-breadcrumbs">
+        <Link to="/">Home</Link>
+        {product.category && (
+          <>
+            <span className="sep">&gt;</span>
+            <Link to={`/categories/${product.category.slug}`}>{product.category.name}</Link>
+          </>
+        )}
+        <span className="sep">&gt;</span>
+        <span className="current">{product.name}</span>
+      </div>
+
       <div className="split-2">
-        <div>
-          <div className="card" style={{ aspectRatio: '1/1', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-            {imageUrl ? (
-              <img src={imageUrl} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            ) : (
-              <span className="text-muted">No image</span>
-            )}
-          </div>
+        <div className="pdp-gallery">
           {product.images.length > 1 && (
-            <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+            <div className="pdp-thumbs">
               {product.images.map((img, idx) => (
                 <button
                   key={idx}
                   onClick={() => setActiveImage(idx)}
-                  className="card"
-                  style={{ width: 56, height: 56, padding: 0, overflow: 'hidden', border: idx === activeImage ? '2px solid var(--brand-purple)' : undefined }}
+                  className={`pdp-thumb${idx === activeImage ? ' active' : ''}`}
                 >
-                  <img src={`${API_ORIGIN}${img.url}`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={`${API_ORIGIN}${img.url}`} alt="" />
                 </button>
               ))}
             </div>
           )}
+          <div className="pdp-main-image">
+            {discountPct !== null && <span className="pdp-save-badge">Save {discountPct}%</span>}
+            {imageUrl ? <img src={imageUrl} alt={product.name} /> : <span className="text-muted">No image</span>}
+          </div>
         </div>
 
         <div>
-          <Link to={`/vendors/${product.vendor.store_slug}`} className="text-muted" style={{ fontSize: 13, fontWeight: 600 }}>
+          <Link to={`/vendors/${product.vendor.store_slug}`} className="pdp-vendor">
             {product.vendor.store_name}
           </Link>
-          <h1 style={{ fontSize: 24, margin: '4px 0 12px' }}>{product.name}</h1>
+          <h1 className="pdp-title">{product.name}</h1>
           {Number(product.rating_count) > 0 && (
-            <div className="text-muted" style={{ marginBottom: 12 }}>
+            <div className="text-muted" style={{ marginBottom: 10 }}>
               ★ {Number(product.rating_avg).toFixed(1)} ({product.rating_count} reviews)
             </div>
           )}
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 16 }}>
-            <span style={{ fontSize: 26, fontWeight: 800 }}>KWD {Number(product.price).toFixed(3)}</span>
-            {product.compare_at_price && (
-              <span className="text-muted" style={{ textDecoration: 'line-through' }}>
-                KWD {Number(product.compare_at_price).toFixed(3)}
-              </span>
-            )}
+
+          <div className="pdp-price-row">
+            <span className="pdp-price">KWD {price.toFixed(3)}</span>
+            {comparePrice && <span className="pdp-price-compare">KWD {comparePrice.toFixed(3)}</span>}
+            {discountPct !== null && <span className="pdp-discount-chip">-{discountPct}%</span>}
           </div>
 
-          {product.description && <p style={{ lineHeight: 1.6 }}>{product.description}</p>}
+          {product.sku && <div className="pdp-meta-row">SKU: {product.sku}</div>}
 
-          <div style={{ display: 'flex', gap: 12, alignItems: 'center', margin: '20px 0' }}>
-            <input
-              type="number"
-              min={1}
-              max={product.stock_quantity}
-              value={qty}
-              onChange={(e) => setQty(Math.max(1, Number(e.target.value)))}
-              style={{ width: 70 }}
-            />
-            <button className="btn btn-primary" disabled={adding || product.stock_quantity === 0} onClick={handleAddToCart}>
-              {product.stock_quantity === 0 ? 'Out of stock' : adding ? 'Adding...' : 'Add to cart'}
+          <div className={`pdp-stock ${inStock ? 'in' : 'out'}`}>
+            <span className="pdp-stock-dot" />
+            {inStock ? 'In stock' : 'Out of stock'}
+          </div>
+
+          {product.variants.length > 0 && (
+            <>
+              <div className="pdp-attr-label">Options: {selectedVariant?.name}</div>
+              <div className="pdp-swatches">
+                {product.variants.map((v) => (
+                  <button
+                    key={v.id}
+                    className={`pdp-swatch${v.id === selectedVariantId ? ' active' : ''}`}
+                    disabled={v.stock_quantity === 0}
+                    onClick={() => setSelectedVariantId(v.id)}
+                  >
+                    {v.name}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+
+          <div className="pdp-taly">
+            <span className="pdp-taly-badge">taly</span>
+            <div className="pdp-taly-text">
+              <div className="pdp-taly-title">Split into 4 payments of KWD {talyInstallment.toFixed(3)}</div>
+              <div className="pdp-taly-sub">0% Interest, 100% Shariah-compliant.</div>
+            </div>
+          </div>
+
+          <div className="pdp-buy-row">
+            <div className="pdp-qty-stepper">
+              <button type="button" onClick={() => setQty((q) => Math.max(1, q - 1))}>
+                &minus;
+              </button>
+              <span>{qty}</span>
+              <button type="button" onClick={() => setQty((q) => Math.min(stock || q + 1, q + 1))}>
+                +
+              </button>
+            </div>
+            <button className="btn btn-primary" style={{ flex: 1 }} disabled={adding || !inStock} onClick={handleAddToCart}>
+              {!inStock ? 'Sold out' : adding ? 'Adding...' : 'Add to cart'}
+            </button>
+            <button
+              className="btn btn-outline"
+              aria-label="Add to wishlist"
+              onClick={handleToggleWishlist}
+              disabled={wishlistBusy}
+              style={{ padding: '0 14px', color: wishlistItemId ? 'var(--brand-magenta)' : undefined }}
+            >
+              <HeartIcon size={18} />
             </button>
           </div>
           {message && <p className="text-muted">{message}</p>}
+
+          <div className="pdp-share-row">
+            <span className="text-muted" style={{ fontSize: 13, fontWeight: 600 }}>
+              Share:
+            </span>
+            <a
+              href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Share on Facebook"
+            >
+              <FacebookIcon size={16} />
+            </a>
+            <a
+              href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(product.name)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Share on X"
+            >
+              <TwitterIcon size={16} />
+            </a>
+            <a href={`mailto:?subject=${encodeURIComponent(product.name)}&body=${encodeURIComponent(shareUrl)}`} aria-label="Share by email">
+              <MailIcon size={16} />
+            </a>
+            <a
+              href={`https://wa.me/?text=${encodeURIComponent(`${product.name} ${shareUrl}`)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Share on WhatsApp"
+            >
+              <WhatsAppIcon size={16} />
+            </a>
+          </div>
         </div>
       </div>
+
+      {description && (
+        <section className="pdp-description">
+          <h2 className="pdp-description-heading">{product.name}</h2>
+          <p style={{ lineHeight: 1.7, whiteSpace: 'pre-line' }}>{shownDescription}</p>
+          {isLongDescription && (
+            <button
+              className="pdp-readmore"
+              onClick={() => setDescExpanded((v) => !v)}
+            >
+              {descExpanded ? 'Read less' : 'Read more'}
+            </button>
+          )}
+        </section>
+      )}
+
+      {product.attributes && Object.keys(product.attributes).length > 0 && (
+        <section style={{ marginTop: 32 }}>
+          <h2 style={{ fontSize: 18, marginBottom: 12 }}>Specifications</h2>
+          <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+            {Object.entries(product.attributes).map(([key, value], idx) => (
+              <div
+                key={key}
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  padding: '10px 16px',
+                  borderTop: idx === 0 ? undefined : '1px solid var(--border-color)',
+                  fontSize: 13.5
+                }}
+              >
+                <span className="text-muted" style={{ textTransform: 'capitalize' }}>{key}</span>
+                <span style={{ fontWeight: 600 }}>{String(value)}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section style={{ marginTop: 48 }}>
         <h2 style={{ fontSize: 18, marginBottom: 16 }}>Reviews</h2>

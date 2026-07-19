@@ -1,5 +1,6 @@
-import { ChangeEvent, FormEvent, useEffect, useRef, useState } from 'react';
+import { ChangeEvent, FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { apiClient, ApiEnvelope } from '../api/client';
+import { getAttributeFieldsForCategory } from '../data/categoryAttributes';
 
 interface Category {
   id: number;
@@ -24,6 +25,7 @@ interface Product {
   weight_kg: string | null;
   category_id: number | null;
   status: string;
+  attributes: Record<string, string> | null;
   vendor: { id: number; store_name: string };
   images: { url: string; is_primary: boolean }[];
 }
@@ -52,10 +54,14 @@ export default function ProductsPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState(emptyForm);
+  const [attributeValues, setAttributeValues] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [pendingImage, setPendingImage] = useState<File | null>(null);
   const newImageInputRef = useRef<HTMLInputElement | null>(null);
+
+  const selectedCategoryName = categories.find((c) => String(c.id) === form.category_id)?.name;
+  const attributeFields = useMemo(() => getAttributeFieldsForCategory(selectedCategoryName), [selectedCategoryName]);
 
   const uploadInputRef = useRef<HTMLInputElement | null>(null);
   const [uploadTargetId, setUploadTargetId] = useState<number | null>(null);
@@ -78,6 +84,7 @@ export default function ProductsPage() {
   function openAddForm() {
     setEditingId(null);
     setForm(emptyForm);
+    setAttributeValues({});
     setPendingImage(null);
     setFormError('');
     setShowForm(true);
@@ -96,6 +103,7 @@ export default function ProductsPage() {
       sku: p.sku || '',
       description: p.description || ''
     });
+    setAttributeValues(p.attributes || {});
     setPendingImage(null);
     setFormError('');
     setShowForm(true);
@@ -105,6 +113,7 @@ export default function ProductsPage() {
     setShowForm(false);
     setEditingId(null);
     setForm(emptyForm);
+    setAttributeValues({});
     setPendingImage(null);
     setFormError('');
   }
@@ -114,6 +123,7 @@ export default function ProductsPage() {
     setFormError('');
     setSubmitting(true);
     try {
+      const attributes = Object.fromEntries(Object.entries(attributeValues).filter(([, v]) => v));
       const payload = {
         name: form.name,
         category_id: form.category_id ? Number(form.category_id) : null,
@@ -122,7 +132,8 @@ export default function ProductsPage() {
         stock_quantity: form.stock_quantity ? Number(form.stock_quantity) : 0,
         weight_kg: form.weight_kg ? Number(form.weight_kg) : null,
         sku: form.sku || null,
-        description: form.description || null
+        description: form.description || null,
+        attributes: Object.keys(attributes).length ? attributes : null
       };
 
       let productId = editingId;
@@ -224,7 +235,13 @@ export default function ProductsPage() {
 
             <div className="form-group">
               <label>Category</label>
-              <select value={form.category_id} onChange={(e) => setForm((f) => ({ ...f, category_id: e.target.value }))}>
+              <select
+                value={form.category_id}
+                onChange={(e) => {
+                  setForm((f) => ({ ...f, category_id: e.target.value }));
+                  setAttributeValues({});
+                }}
+              >
                 <option value="">— Select —</option>
                 {categories.map((c) => (
                   <option key={c.id} value={c.id}>
@@ -238,6 +255,30 @@ export default function ProductsPage() {
               <label>SKU</label>
               <input value={form.sku} onChange={(e) => setForm((f) => ({ ...f, sku: e.target.value }))} />
             </div>
+            {attributeFields.map((f) =>
+              f.type === 'select' ? (
+                <div className="form-group" key={f.key}>
+                  <label>{f.label}</label>
+                  <select
+                    value={attributeValues[f.key] || ''}
+                    onChange={(e) => setAttributeValues((v) => ({ ...v, [f.key]: e.target.value }))}
+                  >
+                    <option value="">— Select —</option>
+                    {f.options?.map((opt) => (
+                      <option key={opt} value={opt}>{opt}</option>
+                    ))}
+                  </select>
+                </div>
+              ) : (
+                <div className="form-group" key={f.key}>
+                  <label>{f.label}</label>
+                  <input
+                    value={attributeValues[f.key] || ''}
+                    onChange={(e) => setAttributeValues((v) => ({ ...v, [f.key]: e.target.value }))}
+                  />
+                </div>
+              )
+            )}
 
             <div className="form-group">
               <label>Price (KWD)</label>

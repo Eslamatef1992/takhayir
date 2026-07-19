@@ -20,6 +20,7 @@ export interface ProductAttributes {
   is_featured: boolean;
   rating_avg: number;
   rating_count: number;
+  attributes: Record<string, unknown> | null;
   created_at?: Date;
   updated_at?: Date;
 }
@@ -27,7 +28,7 @@ export interface ProductAttributes {
 export type ProductCreationAttributes = Optional<
   ProductAttributes,
   | 'id' | 'category_id' | 'description' | 'sku' | 'compare_at_price' | 'stock_quantity'
-  | 'weight_kg' | 'status' | 'rejection_reason' | 'is_featured' | 'rating_avg' | 'rating_count'
+  | 'weight_kg' | 'status' | 'rejection_reason' | 'is_featured' | 'rating_avg' | 'rating_count' | 'attributes'
 >;
 
 export class Product extends Model<ProductAttributes, ProductCreationAttributes> implements ProductAttributes {
@@ -47,6 +48,7 @@ export class Product extends Model<ProductAttributes, ProductCreationAttributes>
   public is_featured!: boolean;
   public rating_avg!: number;
   public rating_count!: number;
+  public attributes!: Record<string, unknown> | null;
   public readonly created_at!: Date;
   public readonly updated_at!: Date;
 }
@@ -68,7 +70,8 @@ Product.init(
     rejection_reason: { type: DataTypes.STRING(500), allowNull: true },
     is_featured: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
     rating_avg: { type: DataTypes.DECIMAL(3, 2), allowNull: false, defaultValue: 0 },
-    rating_count: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 }
+    rating_count: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
+    attributes: { type: DataTypes.JSON, allowNull: true }
   },
   { sequelize, tableName: 'products', underscored: true }
 );

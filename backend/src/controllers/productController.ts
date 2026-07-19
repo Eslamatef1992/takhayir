@@ -86,7 +86,7 @@ export const createProduct = catchAsync(async (req: Request, res: Response) => {
     throw ApiError.forbidden('Your store must be approved by an admin before you can add products');
   }
 
-  const { name, description, sku, category_id, price, compare_at_price, stock_quantity, weight_kg, images, variants } = req.body;
+  const { name, description, sku, category_id, price, compare_at_price, stock_quantity, weight_kg, images, variants, attributes } = req.body;
 
   const slug = await uniqueSlug(name, (s) => Product.findOne({ where: { slug: s } }));
 
@@ -101,7 +101,8 @@ export const createProduct = catchAsync(async (req: Request, res: Response) => {
     compare_at_price: compare_at_price ?? null,
     stock_quantity: stock_quantity ?? 0,
     weight_kg: weight_kg ?? null,
-    status: 'pending'
+    status: 'pending',
+    attributes: attributes ?? null
   });
 
   if (Array.isArray(images) && images.length) {
@@ -143,7 +144,7 @@ async function assertOwnedProduct(productId: number, userId: number) {
 export const updateMyProduct = catchAsync(async (req: Request, res: Response) => {
   const product = await assertOwnedProduct(Number(req.params.id), req.user!.id);
 
-  const { name, description, sku, category_id, price, compare_at_price, stock_quantity, weight_kg } = req.body;
+  const { name, description, sku, category_id, price, compare_at_price, stock_quantity, weight_kg, attributes } = req.body;
 
   if (name && name !== product.name) {
     product.slug = await uniqueSlug(name, (s) => Product.findOne({ where: { slug: s, id: { [Op.ne]: product.id } } }));
@@ -157,6 +158,7 @@ export const updateMyProduct = catchAsync(async (req: Request, res: Response) =>
   if (compare_at_price !== undefined) product.compare_at_price = compare_at_price;
   if (stock_quantity !== undefined) product.stock_quantity = stock_quantity;
   if (weight_kg !== undefined) product.weight_kg = weight_kg;
+  if (attributes !== undefined) product.attributes = attributes;
 
   await product.save();
   const updated = await Product.findByPk(product.id, { include: publicIncludes });
@@ -229,7 +231,8 @@ export const adminCreateProduct = catchAsync(async (req: Request, res: Response)
     weight_kg,
     status,
     images,
-    variants
+    variants,
+    attributes
   } = req.body;
 
   const vendor = await Vendor.findByPk(vendor_id);
@@ -248,7 +251,8 @@ export const adminCreateProduct = catchAsync(async (req: Request, res: Response)
     compare_at_price: compare_at_price ?? null,
     stock_quantity: stock_quantity ?? 0,
     weight_kg: weight_kg ?? null,
-    status: status ?? 'active'
+    status: status ?? 'active',
+    attributes: attributes ?? null
   });
 
   if (Array.isArray(images) && images.length) {
@@ -284,7 +288,7 @@ export const adminUpdateProduct = catchAsync(async (req: Request, res: Response)
   const product = await Product.findByPk(req.params.id);
   if (!product) throw ApiError.notFound('Product not found');
 
-  const { name, description, sku, category_id, price, compare_at_price, stock_quantity, weight_kg, vendor_id, status } = req.body;
+  const { name, description, sku, category_id, price, compare_at_price, stock_quantity, weight_kg, vendor_id, status, attributes } = req.body;
 
   if (name && name !== product.name) {
     product.slug = await uniqueSlug(name, (s) => Product.findOne({ where: { slug: s, id: { [Op.ne]: product.id } } }));
@@ -298,6 +302,7 @@ export const adminUpdateProduct = catchAsync(async (req: Request, res: Response)
   if (stock_quantity !== undefined) product.stock_quantity = stock_quantity;
   if (weight_kg !== undefined) product.weight_kg = weight_kg;
   if (status !== undefined) product.status = status;
+  if (attributes !== undefined) product.attributes = attributes;
   if (vendor_id !== undefined) {
     const vendor = await Vendor.findByPk(vendor_id);
     if (!vendor) throw ApiError.notFound('Vendor not found');
