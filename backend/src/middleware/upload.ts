@@ -29,3 +29,17 @@ export const upload = multer({
     return cb(null, true);
   }
 });
+
+// Same storage/size limits as `upload`, but also accepts PDF — used for
+// document uploads like a vendor's business license.
+export const uploadDocument = multer({
+  storage,
+  limits: { fileSize: maxSizeMb * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'application/pdf'];
+    if (!allowed.includes(file.mimetype)) {
+      return cb(new Error('Only image files (jpeg, png, webp, gif) or PDF are allowed'));
+    }
+    return cb(null, true);
+  }
+});

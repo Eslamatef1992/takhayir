@@ -31,6 +31,10 @@ Category.belongsTo(Category, { foreignKey: 'parent_id', as: 'parent' });
 Vendor.hasMany(Product, { foreignKey: 'vendor_id', as: 'products' });
 Product.belongsTo(Vendor, { foreignKey: 'vendor_id', as: 'vendor' });
 
+// Category -> Vendors
+Category.hasMany(Vendor, { foreignKey: 'category_id', as: 'vendors' });
+Vendor.belongsTo(Category, { foreignKey: 'category_id', as: 'category' });
+
 // Category -> Products
 Category.hasMany(Product, { foreignKey: 'category_id', as: 'products' });
 Product.belongsTo(Category, { foreignKey: 'category_id', as: 'category' });

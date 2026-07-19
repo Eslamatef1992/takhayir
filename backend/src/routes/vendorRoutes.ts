@@ -1,9 +1,15 @@
 import { Router } from 'express';
 import * as vendorController from '../controllers/vendorController';
-import { updateVendorProfileValidator, vendorStatusValidator, commissionValidator } from '../validators/vendorValidators';
+import {
+  updateVendorProfileValidator,
+  vendorStatusValidator,
+  commissionValidator,
+  adminCreateVendorValidator
+} from '../validators/vendorValidators';
 import { validateRequest } from '../middleware/validateRequest';
 import { authenticate } from '../middleware/auth';
 import { requireRole } from '../middleware/roles';
+import { uploadDocument } from '../middleware/upload';
 
 const router = Router();
 
@@ -24,6 +30,64 @@ const router = Router();
  *       200: { description: Vendor list }
  */
 router.get('/', vendorController.listVendors);
+
+/**
+ * @openapi
+ * /api/vendors:
+ *   post:
+ *     tags: [Vendors]
+ *     summary: Create a vendor store + its login account in one step (admin only)
+ *     security: [{ bearerAuth: [] }]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [owner_name, email, password, store_name]
+ *             properties:
+ *               owner_name: { type: string }
+ *               email: { type: string }
+ *               password: { type: string }
+ *               store_name: { type: string }
+ *               store_name_ar: { type: string }
+ *               iban: { type: string }
+ *               category_id: { type: integer }
+ *               business_license_url: { type: string }
+ *               store_logo: { type: string }
+ *               is_featured: { type: boolean }
+ *               commission_rate: { type: number }
+ *     responses:
+ *       201: { description: Created }
+ */
+router.post(
+  '/',
+  authenticate,
+  requireRole('admin'),
+  adminCreateVendorValidator,
+  validateRequest,
+  vendorController.adminCreateVendor
+);
+
+/**
+ * @openapi
+ * /api/vendors/upload:
+ *   post:
+ *     tags: [Vendors]
+ *     summary: Upload a vendor logo or business license document, get back its URL (admin only)
+ *     security: [{ bearerAuth: [] }]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               file: { type: string, format: binary }
+ *     responses:
+ *       201: { description: File uploaded, returns { url } }
+ */
+router.post('/upload', authenticate, requireRole('admin'), uploadDocument.single('file'), vendorController.uploadVendorFile);
 
 /**
  * @openapi

@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { Op } from 'sequelize';
+import bcrypt from 'bcryptjs';
 import { catchAsync } from '../utils/catchAsync';
 import { ApiError } from '../utils/ApiError';
 import { getPagination, buildMeta } from '../utils/pagination';
@@ -112,4 +113,74 @@ export const toggleVendorFeatured = catchAsync(async (req: Request, res: Respons
   await vendor.save();
 
   res.json({ success: true, data: vendor });
+});
+
+// Admin uploads a vendor logo or business license document, gets back its URL
+export const uploadVendorFile = catchAsync(async (req: Request, res: Response) => {
+  if (!req.file) throw ApiError.badRequest('No file uploaded');
+  res.status(201).json({ success: true, data: { url: `/uploads/${req.file.filename}` } });
+});
+
+// Admin creates a vendor store + its login account in one step
+export const adminCreateVendor = catchAsync(async (req: Request, res: Response) => {
+  const {
+    owner_name,
+    email,
+    password,
+    store_name,
+    store_name_ar,
+    iban,
+    category_id,
+    business_license_url,
+    store_logo,
+    is_featured,
+    commission_rate
+  } = req.body;
+
+  const existing = await User.findOne({ where: { email } });
+  if (existing) throw ApiError.conflict('An account with this email already exists');
+
+  const password_hash = await bcrypt.hash(password, 10);
+  const user = await User.create({
+    first_name: owner_name,
+    last_name: null,
+    email,
+    phone: null,
+    password_hash,
+    role: 'vendor',
+    status: 'active',
+    avatar_url: null,
+    email_verified_at: new Date()
+  });
+
+  const store_slug = await uniqueSlug(store_name, (slug) => Vendor.findOne({ where: { store_slug: slug } }));
+
+  const vendor = await Vendor.create({
+    user_id: user.id,
+    store_name,
+    store_name_ar: store_name_ar ?? null,
+    store_slug,
+    store_logo: store_logo ?? null,
+    store_banner: null,
+    description: null,
+    business_type: null,
+    tax_number: null,
+    registration_number: null,
+    business_license_url: business_license_url ?? null,
+    category_id: category_id ?? null,
+    iban: iban ?? null,
+    commission_rate: commission_rate ?? 10.0,
+    status: 'approved',
+    rejection_reason: null,
+    rating_avg: 0,
+    is_featured: is_featured ?? false
+  });
+
+  res.status(201).json({
+    success: true,
+    data: {
+      ...vendor.toJSON(),
+      user: { id: user.id, first_name: user.first_name, email: user.email }
+    }
+  });
 });
