@@ -18,7 +18,7 @@ interface OrderSummary {
 
 export default function OrdersPage() {
   const navigate = useNavigate();
-  const { addItem } = useCart();
+  const { addItem, closeDrawer } = useCart();
   const [orders, setOrders] = useState<OrderSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [reorderingId, setReorderingId] = useState<number | null>(null);
@@ -39,6 +39,7 @@ export default function OrdersPage() {
       for (const item of items) {
         await addItem(item.product_id as number, item.quantity);
       }
+      closeDrawer();
       navigate('/cart');
     } finally {
       setReorderingId(null);

@@ -8,7 +8,7 @@ export interface CartItem {
   variant_id: number | null;
   quantity: number;
   price_snapshot: string;
-  product?: { id: number; name: string; slug: string };
+  product?: { id: number; name: string; slug: string; images?: { url: string; is_primary: boolean }[] };
   variant?: { id: number; name: string } | null;
 }
 
@@ -17,6 +17,9 @@ interface CartContextValue {
   itemCount: number;
   total: number;
   loading: boolean;
+  isDrawerOpen: boolean;
+  openDrawer: () => void;
+  closeDrawer: () => void;
   refresh: () => Promise<void>;
   addItem: (productId: number, quantity?: number, variantId?: number) => Promise<void>;
   updateItem: (itemId: number, quantity: number) => Promise<void>;
@@ -30,6 +33,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const [items, setItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const refresh = useCallback(async () => {
     if (!user) {
@@ -52,6 +56,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   async function addItem(productId: number, quantity = 1, variantId?: number) {
     await apiClient.post('/cart', { product_id: productId, quantity, variant_id: variantId });
     await refresh();
+    setIsDrawerOpen(true);
   }
 
   async function updateItem(itemId: number, quantity: number) {
@@ -73,7 +78,22 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const total = items.reduce((sum, i) => sum + Number(i.price_snapshot) * i.quantity, 0);
 
   return (
-    <CartContext.Provider value={{ items, itemCount, total, loading, refresh, addItem, updateItem, removeItem, clear }}>
+    <CartContext.Provider
+      value={{
+        items,
+        itemCount,
+        total,
+        loading,
+        isDrawerOpen,
+        openDrawer: () => setIsDrawerOpen(true),
+        closeDrawer: () => setIsDrawerOpen(false),
+        refresh,
+        addItem,
+        updateItem,
+        removeItem,
+        clear
+      }}
+    >
       {children}
     </CartContext.Provider>
   );

@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { catchAsync } from '../utils/catchAsync';
 import { ApiError } from '../utils/ApiError';
-import { Cart, CartItem, Product, ProductVariant } from '../models';
+import { Cart, CartItem, Product, ProductImage, ProductVariant } from '../models';
 
 async function getOrCreateCart(userId: number) {
   const [cart] = await Cart.findOrCreate({ where: { user_id: userId }, defaults: { user_id: userId } });
@@ -12,7 +12,10 @@ export const getMyCart = catchAsync(async (req: Request, res: Response) => {
   const cart = await getOrCreateCart(req.user!.id);
   const items = await CartItem.findAll({
     where: { cart_id: cart.id },
-    include: [{ model: Product, as: 'product' }, { model: ProductVariant, as: 'variant' }]
+    include: [
+      { model: Product, as: 'product', include: [{ model: ProductImage, as: 'images' }] },
+      { model: ProductVariant, as: 'variant' }
+    ]
   });
   res.json({ success: true, data: { cart_id: cart.id, items } });
 });

@@ -4,6 +4,7 @@ import { apiClient, ApiEnvelope } from '../api/client';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { FacebookIcon, HeartIcon, MailIcon, TwitterIcon, WhatsAppIcon } from '../components/Icons';
+import talyIcon from '../assets/payments/taly.svg';
 
 interface ProductDetail {
   id: number;
@@ -100,9 +101,9 @@ export default function ProductPage() {
       return;
     }
     setAdding(true);
+    setMessage('');
     try {
       await addItem(product!.id, qty, selectedVariant?.id);
-      setMessage('Added to cart!');
     } catch {
       setMessage('Could not add to cart.');
     } finally {
@@ -207,7 +208,7 @@ export default function ProductPage() {
           )}
 
           <div className="pdp-taly">
-            <span className="pdp-taly-badge">taly</span>
+            <img src={talyIcon} alt="Taly" className="pdp-taly-badge-img" />
             <div className="pdp-taly-text">
               <div className="pdp-taly-title">Split into 4 payments of KWD {talyInstallment.toFixed(3)}</div>
               <div className="pdp-taly-sub">0% Interest, 100% Shariah-compliant.</div>

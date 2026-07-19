@@ -59,7 +59,7 @@ function TrackingProgress({ status }: { status: string }) {
 export default function OrderDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { addItem } = useCart();
+  const { addItem, closeDrawer } = useCart();
   const [order, setOrder] = useState<OrderDetail | null>(null);
   const [reordering, setReordering] = useState(false);
 
@@ -76,6 +76,7 @@ export default function OrderDetailPage() {
       for (const item of items) {
         await addItem(item.product_id as number, item.quantity);
       }
+      closeDrawer();
       navigate('/cart');
     } finally {
       setReordering(false);
