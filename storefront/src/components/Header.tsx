@@ -43,7 +43,7 @@ export function Header() {
 
       <div className="header-inner">
         <Link to="/" className="header-logo">
-          <Logo size={44} />
+          <Logo size={68} />
         </Link>
 
         <nav className="primary-nav">

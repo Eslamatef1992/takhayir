@@ -14,8 +14,73 @@
       rel="stylesheet"
     />
     <title>Takhayir — Shop from every vendor</title>
+    <style>
+      #app-loader {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 22px;
+        background: #faf9fc;
+        transition: opacity 0.45s ease, visibility 0.45s ease;
+      }
+      #app-loader.loader-hidden {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+      }
+      .loader-mark {
+        position: relative;
+        width: 64px;
+        height: 64px;
+      }
+      .loader-ring {
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        border: 3px solid rgba(106, 44, 224, 0.12);
+        border-top-color: #f9622c;
+        border-right-color: #d6247a;
+        animation: loader-spin 0.9s linear infinite;
+      }
+      .loader-dot {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 22px;
+        height: 22px;
+        margin: -11px 0 0 -11px;
+        border-radius: 7px;
+        background: linear-gradient(135deg, #f9622c, #d6247a 55%, #6a2ce0);
+      }
+      .loader-word {
+        font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+        font-weight: 800;
+        font-size: 20px;
+        letter-spacing: 0.01em;
+        background: linear-gradient(135deg, #f9622c, #d6247a 55%, #6a2ce0);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      @keyframes loader-spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
   </head>
   <body>
+    <div id="app-loader">
+      <div class="loader-mark">
+        <span class="loader-ring"></span>
+        <span class="loader-dot"></span>
+      </div>
+      <span class="loader-word">Takhayir</span>
+    </div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
