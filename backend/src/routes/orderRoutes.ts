@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import * as orderController from '../controllers/orderController';
-import { checkoutValidator, orderStatusValidator } from '../validators/orderValidators';
+import { checkoutValidator, guestCheckoutValidator, orderStatusValidator } from '../validators/orderValidators';
 import { validateRequest } from '../middleware/validateRequest';
 import { authenticate } from '../middleware/auth';
 import { requireRole } from '../middleware/roles';
@@ -29,6 +29,50 @@ const router = Router();
  *       201: { description: Order created, returns checkout_url if applicable }
  */
 router.post('/checkout', authenticate, requireRole('customer'), checkoutValidator, validateRequest, orderController.checkoutOrder);
+
+/**
+ * @openapi
+ * /api/orders/guest-checkout:
+ *   post:
+ *     tags: [Orders]
+ *     summary: Checkout without an account — cart items, guest contact info and shipping address are sent inline
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [items, guest, shipping, payment_method]
+ *             properties:
+ *               items:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     product_id: { type: integer }
+ *                     variant_id: { type: integer }
+ *                     quantity: { type: integer }
+ *               guest:
+ *                 type: object
+ *                 properties:
+ *                   full_name: { type: string }
+ *                   email: { type: string }
+ *                   phone: { type: string }
+ *               shipping:
+ *                 type: object
+ *                 properties:
+ *                   country: { type: string }
+ *                   city: { type: string }
+ *                   area: { type: string }
+ *                   street: { type: string }
+ *                   building: { type: string }
+ *                   notes: { type: string }
+ *               payment_method: { type: string, enum: [tap, deema, taly, cod] }
+ *               coupon_code: { type: string }
+ *     responses:
+ *       201: { description: Order created, returns checkout_url if applicable }
+ */
+router.post('/guest-checkout', guestCheckoutValidator, validateRequest, orderController.guestCheckoutOrder);
 
 /**
  * @openapi

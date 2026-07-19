@@ -78,7 +78,18 @@ export function CartDrawer() {
                       </Link>
                       <div className="cart-drawer-rec-price">{Number(p.price).toFixed(3)} KWD</div>
                     </div>
-                    <button className="cart-drawer-rec-add" onClick={() => addItem(p.id)} aria-label="Add to cart">
+                    <button
+                      className="cart-drawer-rec-add"
+                      onClick={() =>
+                        addItem(p.id, 1, undefined, {
+                          name: p.name,
+                          slug: p.slug,
+                          price: Number(p.price),
+                          image: p.images?.find((i) => i.is_primary)?.url || p.images?.[0]?.url
+                        })
+                      }
+                      aria-label="Add to cart"
+                    >
                       +
                     </button>
                   </div>

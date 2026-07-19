@@ -2,12 +2,18 @@ import { Request, Response } from 'express';
 import { catchAsync } from '../utils/catchAsync';
 import { ApiError } from '../utils/ApiError';
 import { getPagination, buildMeta } from '../utils/pagination';
-import { checkout, getFullOrder } from '../services/orderService';
+import { checkout, guestCheckout, getFullOrder } from '../services/orderService';
 import { Order, OrderVendorGroup, OrderItem, Vendor } from '../models';
 
 export const checkoutOrder = catchAsync(async (req: Request, res: Response) => {
   const { shipping_address_id, payment_method, coupon_code } = req.body;
   const result = await checkout({ userId: req.user!.id, shipping_address_id, payment_method, coupon_code });
+  res.status(201).json({ success: true, data: result });
+});
+
+export const guestCheckoutOrder = catchAsync(async (req: Request, res: Response) => {
+  const { items, guest, shipping, payment_method, coupon_code } = req.body;
+  const result = await guestCheckout({ items, guest, shipping, payment_method, coupon_code });
   res.status(201).json({ success: true, data: result });
 });
 

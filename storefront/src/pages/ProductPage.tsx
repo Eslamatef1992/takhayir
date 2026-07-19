@@ -96,14 +96,16 @@ export default function ProductPage() {
   const shownDescription = descExpanded || !isLongDescription ? description : `${description.slice(0, DESCRIPTION_PREVIEW_LENGTH)}...`;
 
   async function handleAddToCart() {
-    if (!user) {
-      setMessage('Please log in to add items to your cart.');
-      return;
-    }
     setAdding(true);
     setMessage('');
     try {
-      await addItem(product!.id, qty, selectedVariant?.id);
+      await addItem(product!.id, qty, selectedVariant?.id, {
+        name: product!.name,
+        slug: product!.slug,
+        price,
+        image: product!.images[0]?.url,
+        variantName: selectedVariant?.name
+      });
     } catch {
       setMessage('Could not add to cart.');
     } finally {

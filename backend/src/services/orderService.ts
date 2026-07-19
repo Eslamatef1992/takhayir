@@ -160,6 +160,189 @@ export async function checkout(input: CheckoutInput) {
   return { order: result, payment };
 }
 
+interface GuestCheckoutItem {
+  product_id: number;
+  variant_id?: number | null;
+  quantity: number;
+}
+
+interface GuestCheckoutInput {
+  items: GuestCheckoutItem[];
+  guest: { full_name: string; email: string; phone: string };
+  shipping: {
+    country: string;
+    city: string;
+    area?: string | null;
+    street?: string | null;
+    building?: string | null;
+    notes?: string | null;
+  };
+  payment_method: 'tap' | 'deema' | 'taly' | 'cod';
+  coupon_code?: string;
+}
+
+// Guest checkout deliberately does not touch the Cart/CartItem/Address
+// tables — the cart lives client-side (localStorage) until the guest
+// places the order, and the shipping address is captured inline rather
+// than saved against a user account. Product prices are always re-read
+// from the DB here rather than trusted from the client.
+export async function guestCheckout(input: GuestCheckoutInput) {
+  const { items: requestedItems, guest, shipping, payment_method, coupon_code } = input;
+
+  if (!requestedItems?.length) throw ApiError.badRequest('Your cart is empty');
+
+  const vendorCache = new Map<number, InstanceType<typeof Vendor>>();
+  const groups = new Map<
+    number,
+    { vendor: InstanceType<typeof Vendor>; items: { product: InstanceType<typeof Product>; variant: InstanceType<typeof ProductVariant> | null; quantity: number; price: number }[]; subtotal: number }
+  >();
+
+  for (const requested of requestedItems) {
+    const product = await Product.findByPk(requested.product_id);
+    if (!product || product.status !== 'active') {
+      throw ApiError.badRequest('A product in your cart is no longer available');
+    }
+
+    let variant: InstanceType<typeof ProductVariant> | null = null;
+    if (requested.variant_id) {
+      variant = await ProductVariant.findOne({ where: { id: requested.variant_id, product_id: product.id } });
+      if (!variant) throw ApiError.badRequest('Selected product option is no longer available');
+    }
+
+    const availableStock = variant ? variant.stock_quantity : product.stock_quantity;
+    if (availableStock < requested.quantity) {
+      throw ApiError.badRequest(`Insufficient stock for "${product.name}"`);
+    }
+
+    const price = variant?.price !== null && variant?.price !== undefined ? Number(variant.price) : Number(product.price);
+
+    if (!vendorCache.has(product.vendor_id)) {
+      const vendor = await Vendor.findByPk(product.vendor_id);
+      if (!vendor) throw ApiError.badRequest('Vendor not found for a product in your cart');
+      vendorCache.set(product.vendor_id, vendor);
+    }
+    const vendor = vendorCache.get(product.vendor_id)!;
+
+    if (!groups.has(vendor.id)) {
+      groups.set(vendor.id, { vendor, items: [], subtotal: 0 });
+    }
+    const group = groups.get(vendor.id)!;
+    group.items.push({ product, variant, quantity: requested.quantity, price });
+    group.subtotal += price * requested.quantity;
+  }
+
+  const subtotal = Array.from(groups.values()).reduce((sum, g) => sum + g.subtotal, 0);
+
+  let discount_total = 0;
+  let coupon: InstanceType<typeof Coupon> | null = null;
+  if (coupon_code) {
+    coupon = await Coupon.findOne({ where: { code: coupon_code, is_active: true } });
+    if (!coupon) throw ApiError.badRequest('Invalid coupon code');
+    const now = new Date();
+    if (coupon.starts_at && coupon.starts_at > now) throw ApiError.badRequest('Coupon is not active yet');
+    if (coupon.expires_at && coupon.expires_at < now) throw ApiError.badRequest('Coupon has expired');
+    if (coupon.usage_limit && coupon.used_count >= coupon.usage_limit) throw ApiError.badRequest('Coupon usage limit reached');
+    if (subtotal < Number(coupon.min_order_amount)) {
+      throw ApiError.badRequest(`Minimum order amount for this coupon is ${coupon.min_order_amount}`);
+    }
+    discount_total = coupon.type === 'percent' ? (Number(coupon.value) / 100) * subtotal : Number(coupon.value);
+    discount_total = Math.min(discount_total, subtotal);
+  }
+
+  const shipping_total = 0;
+  const tax_total = 0;
+  const grand_total = subtotal - discount_total + shipping_total + tax_total;
+
+  const result = await sequelize.transaction(async (t) => {
+    const order = await Order.create(
+      {
+        order_number: generateOrderNumber(),
+        user_id: null,
+        shipping_address_id: null,
+        coupon_id: coupon?.id ?? null,
+        subtotal,
+        shipping_total,
+        discount_total,
+        tax_total,
+        grand_total,
+        currency: 'KWD',
+        status: 'pending',
+        payment_status: 'unpaid',
+        payment_method,
+        guest_name: guest.full_name,
+        guest_email: guest.email,
+        guest_phone: guest.phone,
+        shipping_full_name: guest.full_name,
+        shipping_phone: guest.phone,
+        shipping_country: shipping.country,
+        shipping_city: shipping.city,
+        shipping_area: shipping.area ?? null,
+        shipping_street: shipping.street ?? null,
+        shipping_building: shipping.building ?? null,
+        shipping_notes: shipping.notes ?? null
+      },
+      { transaction: t }
+    );
+
+    for (const [, group] of groups) {
+      const discountShare = subtotal > 0 ? (group.subtotal / subtotal) * discount_total : 0;
+      const commission_rate = Number(group.vendor.commission_rate);
+      const commission_amount = (group.subtotal * commission_rate) / 100;
+
+      const vendorGroup = await OrderVendorGroup.create(
+        {
+          order_id: order.id,
+          vendor_id: group.vendor.id,
+          status: 'pending',
+          subtotal: group.subtotal,
+          commission_rate,
+          commission_amount,
+          payout_amount: group.subtotal - commission_amount - discountShare
+        },
+        { transaction: t }
+      );
+
+      for (const item of group.items) {
+        await OrderItem.create(
+          {
+            order_id: order.id,
+            order_vendor_group_id: vendorGroup.id,
+            product_id: item.product.id,
+            variant_id: item.variant?.id ?? null,
+            vendor_id: group.vendor.id,
+            product_name_snapshot: item.product.name,
+            sku_snapshot: item.variant?.sku ?? item.product.sku,
+            price: item.price,
+            quantity: item.quantity,
+            total: item.price * item.quantity
+          },
+          { transaction: t }
+        );
+
+        if (item.variant) {
+          await ProductVariant.decrement('stock_quantity', { by: item.quantity, where: { id: item.variant.id }, transaction: t });
+        } else {
+          await Product.decrement('stock_quantity', { by: item.quantity, where: { id: item.product.id }, transaction: t });
+        }
+      }
+    }
+
+    if (coupon) {
+      await coupon.increment('used_count', { by: 1, transaction: t });
+    }
+
+    return order;
+  });
+
+  const payment = await initiatePayment({
+    gateway: payment_method,
+    order: result,
+    customerEmail: guest.email
+  });
+
+  return { order: result, payment };
+}
+
 export async function getFullOrder(orderId: number, userId?: number, role?: string) {
   const where: any = { id: orderId };
   if (role === 'customer') where.user_id = userId;
