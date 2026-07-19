@@ -27,6 +27,7 @@ interface VendorSummary {
   id: number;
   store_name: string;
   store_slug: string;
+  store_logo: string | null;
   description: string | null;
   is_featured?: boolean;
 }
@@ -216,12 +217,21 @@ export default function HomePage() {
               <Reveal key={v.id} delay={idx * 50}>
                 <Link to={`/vendors/${v.store_slug}`} className="card card-premium store-card">
                   {v.is_featured && <span className="store-card-featured-tag">Featured</span>}
-                  <div
-                    className="store-card-icon"
-                    style={{ background: STORE_GRADIENTS[idx % STORE_GRADIENTS.length] }}
-                  >
-                    <StoreIcon size={20} />
-                  </div>
+                  {v.store_logo ? (
+                    <div className="store-card-icon store-card-icon-logo">
+                      <img
+                        src={v.store_logo.startsWith('http') ? v.store_logo : `${API_ORIGIN}${v.store_logo}`}
+                        alt={v.store_name}
+                      />
+                    </div>
+                  ) : (
+                    <div
+                      className="store-card-icon"
+                      style={{ background: STORE_GRADIENTS[idx % STORE_GRADIENTS.length] }}
+                    >
+                      <StoreIcon size={20} />
+                    </div>
+                  )}
                   <div style={{ fontWeight: 800, marginBottom: 4 }}>{v.store_name}</div>
                   {v.description && (
                     <p

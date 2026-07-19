@@ -896,6 +896,16 @@ label {
   margin-bottom: 14px;
   box-shadow: var(--shadow);
 }
+.store-card-icon-logo {
+  background: var(--bg-subtle);
+  overflow: hidden;
+  padding: 0;
+}
+.store-card-icon-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 .store-card-featured-tag {
   position: absolute;
   top: 16px;

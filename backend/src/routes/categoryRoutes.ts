@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import * as categoryController from '../controllers/categoryController';
-import { categoryValidator } from '../validators/categoryValidators';
+import { categoryValidator, updateCategoryValidator } from '../validators/categoryValidators';
 import { validateRequest } from '../middleware/validateRequest';
 import { authenticate } from '../middleware/auth';
 import { requireRole } from '../middleware/roles';
@@ -111,7 +111,7 @@ router.get('/:slug', categoryController.getCategory);
  *     responses:
  *       204: { description: Deleted }
  */
-router.put('/:id', authenticate, requireRole('admin'), categoryValidator, validateRequest, categoryController.updateCategory);
+router.put('/:id', authenticate, requireRole('admin'), updateCategoryValidator, validateRequest, categoryController.updateCategory);
 router.delete('/:id', authenticate, requireRole('admin'), categoryController.deleteCategory);
 
 export default router;

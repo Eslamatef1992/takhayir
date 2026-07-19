@@ -1,12 +1,19 @@
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 import { apiClient, ApiEnvelope } from '../api/client';
 
+export interface VendorProfile {
+  status: 'pending' | 'approved' | 'suspended' | 'rejected';
+  rejection_reason: string | null;
+  store_name: string;
+}
+
 export interface VendorUser {
   id: number;
   first_name: string;
   last_name: string | null;
   email: string;
   role: 'admin' | 'vendor' | 'customer';
+  vendorProfile?: VendorProfile;
 }
 
 interface AuthContextValue {
@@ -15,6 +22,7 @@ interface AuthContextValue {
   login: (email: string, password: string) => Promise<void>;
   register: (payload: Record<string, unknown>) => Promise<void>;
   logout: () => void;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -42,7 +50,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error('This account is not a vendor account.');
     }
     localStorage.setItem('takhayir_vendor_token', res.data.data.accessToken);
-    setUser(res.data.data.user);
+    // /auth/login doesn't include the vendor's approval status - fetch the full profile.
+    const me = await apiClient.get<ApiEnvelope<VendorUser>>('/auth/me');
+    setUser(me.data.data);
   }
 
   async function register(payload: Record<string, unknown>) {
@@ -51,7 +61,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       role: 'vendor'
     });
     localStorage.setItem('takhayir_vendor_token', res.data.data.accessToken);
-    setUser(res.data.data.user);
+    const me = await apiClient.get<ApiEnvelope<VendorUser>>('/auth/me');
+    setUser(me.data.data);
   }
 
   function logout() {
@@ -59,7 +70,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }
 
-  return <AuthContext.Provider value={{ user, loading, login, register, logout }}>{children}</AuthContext.Provider>;
+  async function refreshUser() {
+    const me = await apiClient.get<ApiEnvelope<VendorUser>>('/auth/me');
+    setUser(me.data.data);
+  }
+
+  return (
+    <AuthContext.Provider value={{ user, loading, login, register, logout, refreshUser }}>{children}</AuthContext.Provider>
+  );
 }
 
 export function useAuth() {

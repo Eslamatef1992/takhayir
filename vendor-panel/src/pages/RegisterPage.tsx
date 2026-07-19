@@ -31,9 +31,10 @@ export default function RegisterPage() {
           <Logo size={64} />
         </div>
         <form onSubmit={handleSubmit} className="card" style={{ padding: 28 }}>
-          <h1 style={{ fontSize: 18, marginBottom: 4 }}>Start selling on Takhayir</h1>
+          <h1 style={{ fontSize: 18, marginBottom: 4 }}>Apply to sell on Takhayir</h1>
           <p className="text-muted" style={{ fontSize: 13, marginBottom: 20 }}>
-            Your store will be reviewed by our team before it goes live.
+            Submit your details below. Our team will review your application and approve your
+            store before you can sign in and start selling.
           </p>
           <div className="form-group">
             <label>Store name</label>
@@ -61,7 +62,7 @@ export default function RegisterPage() {
           </div>
           {error && <p className="error-text">{error}</p>}
           <button className="btn btn-primary" style={{ width: '100%' }} disabled={loading}>
-            {loading ? 'Creating store...' : 'Create store'}
+            {loading ? 'Submitting...' : 'Submit application'}
           </button>
         </form>
         <p className="text-muted" style={{ textAlign: 'center', marginTop: 16 }}>
