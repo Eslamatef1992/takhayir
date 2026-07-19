@@ -189,6 +189,42 @@ export function StarIcon({ size, className }: IconProps) {
   );
 }
 
+export function LockIcon({ size, className }: IconProps) {
+  return (
+    <svg {...base(size)} className={className}>
+      <rect x="4" y="10" width="16" height="11" rx="2" />
+      <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+    </svg>
+  );
+}
+
+export function PhoneIcon({ size, className }: IconProps) {
+  return (
+    <svg {...base(size)} className={className}>
+      <path d="M4 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L14 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 4 6a2 2 0 0 1 0-2Z" />
+    </svg>
+  );
+}
+
+export function EyeIcon({ size, className }: IconProps) {
+  return (
+    <svg {...base(size)} className={className}>
+      <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
+export function EyeOffIcon({ size, className }: IconProps) {
+  return (
+    <svg {...base(size)} className={className}>
+      <path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a20.3 20.3 0 0 1 5.06-5.94M9.9 4.24A10.4 10.4 0 0 1 12 4c7 0 11 7 11 7a20.3 20.3 0 0 1-2.16 3.19" />
+      <path d="M14.12 14.12a3 3 0 1 1-4.24-4.24" />
+      <path d="M1 1l22 22" />
+    </svg>
+  );
+}
+
 export function TrashIcon({ size, className }: IconProps) {
   return (
     <svg {...base(size)} className={className}>

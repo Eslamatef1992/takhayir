@@ -1,6 +1,8 @@
 import { FormEvent, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { apiClient } from '../api/client';
+import { AuthLayout } from '../components/AuthLayout';
+import { EyeIcon, EyeOffIcon, LockIcon } from '../components/Icons';
 
 export default function ResetPasswordPage() {
   const [searchParams] = useSearchParams();
@@ -9,6 +11,8 @@ export default function ResetPasswordPage() {
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [done, setDone] = useState(false);
@@ -35,48 +39,72 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div style={{ maxWidth: 400, margin: '0 auto' }}>
-      <h1 style={{ fontSize: 22, marginBottom: 20 }}>Choose a new password</h1>
-      <div className="card" style={{ padding: 24 }}>
-        {!token ? (
-          <p className="error-text">
-            This reset link is missing its token. Please use the link from your email, or{' '}
-            <Link to="/forgot-password">request a new one</Link>.
-          </p>
-        ) : done ? (
-          <p style={{ lineHeight: 1.6 }}>Your password has been reset. Redirecting you to log in...</p>
-        ) : (
-          <form onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label>New password</label>
+    <AuthLayout
+      title="Choose a new password"
+      subtitle="Make it something you'll remember."
+      footer={<Link to="/login">Back to log in</Link>}
+    >
+      {!token ? (
+        <p className="error-text">
+          This reset link is missing its token. Please use the link from your email, or{' '}
+          <Link to="/forgot-password">request a new one</Link>.
+        </p>
+      ) : done ? (
+        <p style={{ lineHeight: 1.6 }}>Your password has been reset. Redirecting you to log in...</p>
+      ) : (
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label>New password</label>
+            <div className="auth-input-wrap">
+              <span className="auth-input-icon">
+                <LockIcon size={17} />
+              </span>
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={8}
               />
+              <button
+                type="button"
+                className="auth-password-toggle"
+                onClick={() => setShowPassword((v) => !v)}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <EyeOffIcon size={17} /> : <EyeIcon size={17} />}
+              </button>
             </div>
-            <div className="form-group">
-              <label>Retype new password</label>
+          </div>
+          <div className="form-group">
+            <label>Retype new password</label>
+            <div className="auth-input-wrap">
+              <span className="auth-input-icon">
+                <LockIcon size={17} />
+              </span>
               <input
-                type="password"
+                type={showConfirmPassword ? 'text' : 'password'}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
                 minLength={8}
               />
+              <button
+                type="button"
+                className="auth-password-toggle"
+                onClick={() => setShowConfirmPassword((v) => !v)}
+                aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+              >
+                {showConfirmPassword ? <EyeOffIcon size={17} /> : <EyeIcon size={17} />}
+              </button>
             </div>
-            {error && <p className="error-text">{error}</p>}
-            <button className="btn btn-primary" style={{ width: '100%' }} disabled={loading}>
-              {loading ? 'Saving...' : 'Reset password'}
-            </button>
-          </form>
-        )}
-      </div>
-      <p style={{ marginTop: 16 }} className="text-muted">
-        <Link to="/login">Back to log in</Link>
-      </p>
-    </div>
+          </div>
+          {error && <p className="error-text">{error}</p>}
+          <button className="btn btn-primary" style={{ width: '100%' }} disabled={loading}>
+            {loading ? 'Saving...' : 'Reset password'}
+          </button>
+        </form>
+      )}
+    </AuthLayout>
   );
 }
