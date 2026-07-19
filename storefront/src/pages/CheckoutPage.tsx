@@ -4,6 +4,12 @@ import { apiClient, ApiEnvelope } from '../api/client';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { KUWAIT_AREAS, KUWAIT_GOVERNORATES } from '../data/kuwaitAreas';
+import { CashIcon } from '../components/Icons';
+import talyIcon from '../assets/payments/taly.svg';
+import visaIcon from '../assets/payments/visa.svg';
+import mastercardIcon from '../assets/payments/mastercard.svg';
+import knetIcon from '../assets/payments/knet.svg';
+import applePayIcon from '../assets/payments/apple-pay.svg';
 
 interface Address {
   id: number;
@@ -16,10 +22,19 @@ interface Address {
 }
 
 const PAYMENT_METHODS = [
-  { value: 'tap', label: 'Card / Mada / Apple Pay (Tap Payments)' },
-  { value: 'deema', label: 'Deema — pay in installments' },
-  { value: 'taly', label: 'Taly — pay in installments' },
-  { value: 'cod', label: 'Cash on delivery' }
+  {
+    value: 'tap',
+    label: 'Card / Mada / Apple Pay (Tap Payments)',
+    icons: [
+      { src: visaIcon, alt: 'Visa' },
+      { src: mastercardIcon, alt: 'Mastercard' },
+      { src: knetIcon, alt: 'KNET' },
+      { src: applePayIcon, alt: 'Apple Pay' }
+    ]
+  },
+  { value: 'deema', label: 'Deema — pay in installments', badge: 'deema' },
+  { value: 'taly', label: 'Taly — pay in installments', icons: [{ src: talyIcon, alt: 'Taly' }] },
+  { value: 'cod', label: 'Cash on delivery', cash: true }
 ];
 
 const emptyGuestInfo = { full_name: '', email: '', phone: '', city: '', area: '', street: '', building: '', notes: '' };
@@ -284,15 +299,51 @@ export default function CheckoutPage() {
         <h1 style={{ fontSize: 20, marginBottom: 16 }}>Payment method</h1>
         <div className="card" style={{ padding: 16 }}>
           {PAYMENT_METHODS.map((m) => (
-            <label key={m.value} style={{ display: 'flex', gap: 10, alignItems: 'center', padding: '8px 0', fontWeight: 400 }}>
-              <input
-                type="radio"
-                name="payment"
-                checked={paymentMethod === m.value}
-                onChange={() => setPaymentMethod(m.value)}
-                style={{ width: 'auto' }}
-              />
-              {m.label}
+            <label
+              key={m.value}
+              style={{
+                display: 'flex',
+                gap: 10,
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '10px 0',
+                fontWeight: 400,
+                borderTop: m.value === 'tap' ? undefined : '1px solid var(--border-color)'
+              }}
+            >
+              <span style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                <input
+                  type="radio"
+                  name="payment"
+                  checked={paymentMethod === m.value}
+                  onChange={() => setPaymentMethod(m.value)}
+                  style={{ width: 'auto' }}
+                />
+                {m.label}
+              </span>
+              <span style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                {m.icons?.map((icon) => (
+                  <img key={icon.alt} src={icon.src} alt={icon.alt} style={{ height: 20, width: 'auto' }} />
+                ))}
+                {m.badge && (
+                  <span
+                    style={{
+                      fontFamily: 'inherit',
+                      fontWeight: 800,
+                      fontSize: 13,
+                      letterSpacing: '-0.02em',
+                      color: 'var(--brand-magenta, #d6249f)',
+                      padding: '3px 10px',
+                      borderRadius: 6,
+                      background: 'rgba(214, 36, 159, 0.08)',
+                      textTransform: 'lowercase'
+                    }}
+                  >
+                    {m.badge}
+                  </span>
+                )}
+                {m.cash && <CashIcon size={20} className="text-muted" />}
+              </span>
             </label>
           ))}
         </div>

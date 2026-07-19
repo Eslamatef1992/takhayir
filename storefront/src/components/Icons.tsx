@@ -236,6 +236,16 @@ export function TrashIcon({ size, className }: IconProps) {
   );
 }
 
+export function CashIcon({ size, className }: IconProps) {
+  return (
+    <svg {...base(size)} className={className}>
+      <rect x="2" y="6" width="20" height="12" rx="2" />
+      <circle cx="12" cy="12" r="3" />
+      <path d="M6 9v.01M18 15v.01" />
+    </svg>
+  );
+}
+
 export function ArrowRightIcon({ size, className }: IconProps) {
   return (
     <svg {...base(size)} className={className}>
