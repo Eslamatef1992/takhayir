@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { Logo } from './Logo';
 import { useAuth } from '../context/AuthContext';
@@ -24,12 +24,35 @@ export function Header() {
   const [megaOpen, setMegaOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [categoryTree, setCategoryTree] = useState<CategoryNode[]>([]);
+  const megaWrapRef = useRef<HTMLDivElement | null>(null);
+  const megaPanelRef = useRef<HTMLDivElement | null>(null);
+  const accountWrapRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     apiClient
       .get<ApiEnvelope<CategoryNode[]>>('/categories')
       .then((res) => setCategoryTree(res.data.data))
       .catch(() => undefined);
+  }, []);
+
+  // Click-outside handling. Deliberately click-driven rather than hover-driven:
+  // with a hover-open handler on the wrapper, moving the mouse onto the trigger
+  // button fires mouseenter (opens it) immediately before the click handler also
+  // fires and toggles it - closing it again before a link inside can be clicked.
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      const target = e.target as Node;
+      const insideMega =
+        (megaWrapRef.current && megaWrapRef.current.contains(target)) ||
+        (megaPanelRef.current && megaPanelRef.current.contains(target));
+      if (!insideMega) setMegaOpen(false);
+
+      if (accountWrapRef.current && !accountWrapRef.current.contains(target)) {
+        setAccountOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   function handleSearch(e: FormEvent) {
@@ -51,11 +74,7 @@ export function Header() {
             Home
           </NavLink>
 
-          <div
-            className="mega-wrap"
-            onMouseEnter={() => setMegaOpen(true)}
-            onMouseLeave={() => setMegaOpen(false)}
-          >
+          <div className="mega-wrap" ref={megaWrapRef}>
             <button
               className={`primary-nav-link mega-trigger${megaOpen ? ' active' : ''}`}
               onClick={() => setMegaOpen((o) => !o)}
@@ -88,11 +107,7 @@ export function Header() {
             {itemCount > 0 && <span className="cart-badge">{itemCount}</span>}
           </Link>
 
-          <div
-            className="account-wrap"
-            onMouseEnter={() => setAccountOpen(true)}
-            onMouseLeave={() => setAccountOpen(false)}
-          >
+          <div className="account-wrap" ref={accountWrapRef}>
             <button className="icon-link icon-btn" aria-label="Account" onClick={() => setAccountOpen((o) => !o)}>
               <UserIcon size={21} />
             </button>
@@ -131,7 +146,7 @@ export function Header() {
       </div>
 
       {megaOpen && categoryTree.length > 0 && (
-        <div className="mega-panel-full" onMouseEnter={() => setMegaOpen(true)} onMouseLeave={() => setMegaOpen(false)}>
+        <div className="mega-panel-full" ref={megaPanelRef}>
           <div className="mega-panel-inner">
             {categoryTree.map((cat) => (
               <div key={cat.id} className="mega-col">
