@@ -21,6 +21,7 @@ import WishlistPage from './pages/WishlistPage';
 import AddressesPage from './pages/AddressesPage';
 import ChangePasswordPage from './pages/ChangePasswordPage';
 import CustomerCouponsPage from './pages/CustomerCouponsPage';
+import ProfilePage from './pages/ProfilePage';
 
 export default function App() {
   return (
@@ -48,6 +49,14 @@ export default function App() {
               <Route path="register" element={<RegisterPage />} />
               <Route path="forgot-password" element={<ForgotPasswordPage />} />
               <Route path="reset-password" element={<ResetPasswordPage />} />
+              <Route
+                path="profile"
+                element={
+                  <ProtectedRoute>
+                    <ProfilePage />
+                  </ProtectedRoute>
+                }
+              />
               <Route
                 path="orders"
                 element={

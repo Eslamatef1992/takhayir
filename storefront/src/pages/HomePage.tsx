@@ -202,9 +202,9 @@ export default function HomePage() {
           </div>
         </Reveal>
         {storesLoading ? (
-          <div className="grid-products">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="skeleton" style={{ height: 150 }} />
+          <div className="category-tile-grid">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="skeleton category-tile" />
             ))}
           </div>
         ) : stores.length === 0 ? (
@@ -212,7 +212,7 @@ export default function HomePage() {
             <p className="text-muted">No stores yet — check back soon.</p>
           </div>
         ) : (
-          <div className="grid-products">
+          <div className="category-tile-grid">
             {stores.map((v, idx) => (
               <Reveal key={v.id} delay={idx * 50}>
                 <Link to={`/vendors/${v.store_slug}`} className="card card-premium store-card">
@@ -229,25 +229,11 @@ export default function HomePage() {
                       className="store-card-icon"
                       style={{ background: STORE_GRADIENTS[idx % STORE_GRADIENTS.length] }}
                     >
-                      <StoreIcon size={20} />
+                      <StoreIcon size={38} />
                     </div>
                   )}
-                  <div style={{ fontWeight: 800, marginBottom: 4 }}>{v.store_name}</div>
-                  {v.description && (
-                    <p
-                      className="text-muted"
-                      style={{
-                        fontSize: 13,
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical'
-                      }}
-                    >
-                      {v.description}
-                    </p>
-                  )}
+                  <div className="store-card-name">{v.store_name}</div>
+                  {v.description && <p className="store-card-desc">{v.description}</p>}
                 </Link>
               </Reveal>
             ))}
