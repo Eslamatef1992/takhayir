@@ -465,6 +465,20 @@ label {
   margin-left: auto;
 }
 
+.lang-switch {
+  border: 1.5px solid var(--border-color-strong);
+  background: transparent;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-main);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+  white-space: nowrap;
+}
+.lang-switch:hover { background: var(--bg-subtle); border-color: var(--brand-purple); }
+
 .icon-link {
   display: flex;
   align-items: center;
@@ -1599,4 +1613,39 @@ label {
 
 @media (max-width: 520px) {
   .cart-row-price { width: auto; margin-right: auto; }
+}
+
+/* ---------- RTL (Arabic) support ---------- */
+/* Flexbox rows already mirror automatically under dir="rtl"; these overrides
+   handle the handful of physical left/right and text-align rules that don't
+   flip on their own. */
+
+[dir='rtl'] body { font-family: 'Segoe UI', Tahoma, 'Geeza Pro', 'Cairo', var(--font-sans, sans-serif); }
+
+[dir='rtl'] .header-search input { padding-left: 14px; padding-right: 42px; }
+[dir='rtl'] .header-search svg { left: auto; right: 15px; }
+[dir='rtl'] .header-icons { margin-left: 0; margin-right: auto; }
+[dir='rtl'] .lang-switch { order: -1; }
+
+[dir='rtl'] .profile-tab-link { text-align: right; }
+[dir='rtl'] .cart-row-price { text-align: left; }
+[dir='rtl'] .cart-drawer-item-remove { margin-left: 0; margin-right: auto; }
+
+[dir='rtl'] .auth-input-wrap .auth-input-icon { left: auto; right: 14px; }
+[dir='rtl'] .auth-input-wrap input { padding-left: 14px; padding-right: 42px; }
+[dir='rtl'] .auth-password-toggle { right: auto; left: 12px; }
+[dir='rtl'] .auth-brand-glow-1 { left: auto; right: -60px; }
+[dir='rtl'] .auth-brand-glow-2 { right: auto; left: -60px; }
+
+[dir='rtl'] .mega-panel-inner { text-align: right; }
+[dir='rtl'] .footer-links { text-align: right; }
+[dir='rtl'] .filters-bar,
+[dir='rtl'] .filter-chip { text-align: right; }
+
+/* Generic text alignment: prose and form labels read naturally right-aligned
+   in Arabic; numeric/price columns stay as authored above. */
+[dir='rtl'] .section p,
+[dir='rtl'] .form-group label,
+[dir='rtl'] .card p {
+  text-align: right;
 }

@@ -77,3 +77,9 @@ th { color: var(--text-muted); font-weight: 600; font-size: 12px; text-transform
   width: min(560px, 100%); background: var(--bg-card); height: 100%; overflow-y: auto;
   box-shadow: -8px 0 30px rgba(20, 18, 43, 0.15); padding: 24px;
 }
+
+/* ---------- RTL (Arabic) support ---------- */
+[dir='rtl'] body { font-family: 'Segoe UI', Tahoma, 'Geeza Pro', 'Cairo', sans-serif; }
+[dir='rtl'] .slide-over-backdrop { justify-content: flex-start; }
+[dir='rtl'] .slide-over-panel { box-shadow: 8px 0 30px rgba(20, 18, 43, 0.15); }
+[dir='rtl'] th, [dir='rtl'] td { text-align: right; }

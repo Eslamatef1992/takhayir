@@ -57,7 +57,7 @@ export const updateMyVendorProfile = catchAsync(async (req: Request, res: Respon
   const vendor = await Vendor.findOne({ where: { user_id: req.user!.id } });
   if (!vendor) throw ApiError.notFound('Vendor profile not found');
 
-  const { store_name, description, business_type, tax_number, registration_number, iban, store_logo, store_banner } = req.body;
+  const { store_name, store_name_ar, description, description_ar, business_type, tax_number, registration_number, iban, store_logo, store_banner } = req.body;
 
   if (store_name && store_name !== vendor.store_name) {
     vendor.store_slug = await uniqueSlug(store_name, (s) =>
@@ -65,7 +65,9 @@ export const updateMyVendorProfile = catchAsync(async (req: Request, res: Respon
     );
     vendor.store_name = store_name;
   }
+  if (store_name_ar !== undefined) vendor.store_name_ar = store_name_ar;
   if (description !== undefined) vendor.description = description;
+  if (description_ar !== undefined) vendor.description_ar = description_ar;
   if (business_type !== undefined) vendor.business_type = business_type;
   if (tax_number !== undefined) vendor.tax_number = tax_number;
   if (registration_number !== undefined) vendor.registration_number = registration_number;
@@ -215,6 +217,7 @@ export const adminUpdateVendor = catchAsync(async (req: Request, res: Response) 
     store_name,
     store_name_ar,
     description,
+    description_ar,
     business_type,
     tax_number,
     registration_number,
@@ -235,6 +238,7 @@ export const adminUpdateVendor = catchAsync(async (req: Request, res: Response) 
   }
   if (store_name_ar !== undefined) vendor.store_name_ar = store_name_ar;
   if (description !== undefined) vendor.description = description;
+  if (description_ar !== undefined) vendor.description_ar = description_ar;
   if (business_type !== undefined) vendor.business_type = business_type;
   if (tax_number !== undefined) vendor.tax_number = tax_number;
   if (registration_number !== undefined) vendor.registration_number = registration_number;

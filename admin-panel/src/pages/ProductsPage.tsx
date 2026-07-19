@@ -17,7 +17,9 @@ interface Vendor {
 interface Product {
   id: number;
   name: string;
+  name_ar: string | null;
   description: string | null;
+  description_ar: string | null;
   sku: string | null;
   price: string;
   compare_at_price: string | null;
@@ -49,13 +51,15 @@ const API_ORIGIN = (import.meta.env.VITE_API_URL || 'http://localhost:4000/api')
 const emptyForm = {
   vendor_id: '',
   name: '',
+  name_ar: '',
   category_id: '',
   price: '',
   compare_at_price: '',
   stock_quantity: '',
   weight_kg: '',
   sku: '',
-  description: ''
+  description: '',
+  description_ar: ''
 };
 
 export default function ProductsPage() {
@@ -140,13 +144,15 @@ export default function ProductsPage() {
     setForm({
       vendor_id: String(p.vendor.id),
       name: p.name,
+      name_ar: p.name_ar || '',
       category_id: p.category_id ? String(p.category_id) : '',
       price: p.price,
       compare_at_price: p.compare_at_price || '',
       stock_quantity: String(p.stock_quantity ?? 0),
       weight_kg: p.weight_kg || '',
       sku: p.sku || '',
-      description: p.description || ''
+      description: p.description || '',
+      description_ar: p.description_ar || ''
     });
     setAttributeValues(p.attributes || {});
     setPendingImage(null);
@@ -178,6 +184,7 @@ export default function ProductsPage() {
       }));
       const payload = {
         name: form.name,
+        name_ar: form.name_ar || null,
         category_id: form.category_id ? Number(form.category_id) : null,
         price: Number(form.price),
         compare_at_price: form.compare_at_price ? Number(form.compare_at_price) : null,
@@ -186,6 +193,7 @@ export default function ProductsPage() {
         variants,
         sku: form.sku || null,
         description: form.description || null,
+        description_ar: form.description_ar || null,
         attributes: Object.keys(attributes).length ? attributes : null
       };
 
@@ -285,6 +293,10 @@ export default function ProductsPage() {
               <label>Name</label>
               <input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} required />
             </div>
+            <div className="form-group">
+              <label>Name (Arabic, optional)</label>
+              <input dir="rtl" value={form.name_ar} onChange={(e) => setForm((f) => ({ ...f, name_ar: e.target.value }))} placeholder="الاسم بالعربية" />
+            </div>
 
             <div className="form-group">
               <label>Category</label>
@@ -376,6 +388,10 @@ export default function ProductsPage() {
             <div className="form-group" style={{ gridColumn: '1 / -1' }}>
               <label>Description</label>
               <textarea rows={3} value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} />
+            </div>
+            <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+              <label>Description (Arabic, optional)</label>
+              <textarea dir="rtl" rows={3} value={form.description_ar} onChange={(e) => setForm((f) => ({ ...f, description_ar: e.target.value }))} placeholder="الوصف بالعربية" />
             </div>
 
             <div className="form-group">

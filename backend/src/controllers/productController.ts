@@ -28,8 +28,8 @@ function publicIncludes() {
   return [
     { model: ProductImage, as: 'images' },
     { model: ProductVariant, as: 'variants' },
-    { model: Vendor, as: 'vendor', attributes: ['id', 'store_name', 'store_slug', 'store_logo', 'status'] },
-    { model: Category, as: 'category', attributes: ['id', 'name', 'slug'] }
+    { model: Vendor, as: 'vendor', attributes: ['id', 'store_name', 'store_name_ar', 'store_slug', 'store_logo', 'status'] },
+    { model: Category, as: 'category', attributes: ['id', 'name', 'name_ar', 'slug'] }
   ];
 }
 
@@ -106,7 +106,7 @@ export const createProduct = catchAsync(async (req: Request, res: Response) => {
     throw ApiError.forbidden('Your store must be approved by an admin before you can add products');
   }
 
-  const { name, description, sku, category_id, price, compare_at_price, stock_quantity, weight_kg, images, variants, attributes } = req.body;
+  const { name, name_ar, description, description_ar, sku, category_id, price, compare_at_price, stock_quantity, weight_kg, images, variants, attributes } = req.body;
 
   await assertCategoryAllowed(vendor.id, category_id);
 
@@ -116,8 +116,10 @@ export const createProduct = catchAsync(async (req: Request, res: Response) => {
     vendor_id: vendor.id,
     category_id: category_id ?? null,
     name,
+    name_ar: name_ar ?? null,
     slug,
     description: description ?? null,
+    description_ar: description_ar ?? null,
     sku: sku ?? null,
     price,
     compare_at_price: compare_at_price ?? null,
@@ -166,7 +168,7 @@ async function assertOwnedProduct(productId: number, userId: number) {
 export const updateMyProduct = catchAsync(async (req: Request, res: Response) => {
   const product = await assertOwnedProduct(Number(req.params.id), req.user!.id);
 
-  const { name, description, sku, category_id, price, compare_at_price, stock_quantity, weight_kg, attributes, variants } = req.body;
+  const { name, name_ar, description, description_ar, sku, category_id, price, compare_at_price, stock_quantity, weight_kg, attributes, variants } = req.body;
 
   if (category_id !== undefined && category_id !== product.category_id) {
     await assertCategoryAllowed(product.vendor_id, category_id);
@@ -177,7 +179,9 @@ export const updateMyProduct = catchAsync(async (req: Request, res: Response) =>
     product.name = name;
     product.status = 'pending'; // re-review after material edits
   }
+  if (name_ar !== undefined) product.name_ar = name_ar;
   if (description !== undefined) product.description = description;
+  if (description_ar !== undefined) product.description_ar = description_ar;
   if (sku !== undefined) product.sku = sku;
   if (category_id !== undefined) product.category_id = category_id;
   if (price !== undefined) product.price = price;
@@ -265,7 +269,9 @@ export const adminCreateProduct = catchAsync(async (req: Request, res: Response)
   const {
     vendor_id,
     name,
+    name_ar,
     description,
+    description_ar,
     sku,
     category_id,
     price,
@@ -287,8 +293,10 @@ export const adminCreateProduct = catchAsync(async (req: Request, res: Response)
     vendor_id: vendor.id,
     category_id: category_id ?? null,
     name,
+    name_ar: name_ar ?? null,
     slug,
     description: description ?? null,
+    description_ar: description_ar ?? null,
     sku: sku ?? null,
     price,
     compare_at_price: compare_at_price ?? null,
@@ -331,13 +339,15 @@ export const adminUpdateProduct = catchAsync(async (req: Request, res: Response)
   const product = await Product.findByPk(req.params.id);
   if (!product) throw ApiError.notFound('Product not found');
 
-  const { name, description, sku, category_id, price, compare_at_price, stock_quantity, weight_kg, vendor_id, status, attributes, variants } = req.body;
+  const { name, name_ar, description, description_ar, sku, category_id, price, compare_at_price, stock_quantity, weight_kg, vendor_id, status, attributes, variants } = req.body;
 
   if (name && name !== product.name) {
     product.slug = await uniqueSlug(name, (s) => Product.findOne({ where: { slug: s, id: { [Op.ne]: product.id } } }));
     product.name = name;
   }
+  if (name_ar !== undefined) product.name_ar = name_ar;
   if (description !== undefined) product.description = description;
+  if (description_ar !== undefined) product.description_ar = description_ar;
   if (sku !== undefined) product.sku = sku;
   if (category_id !== undefined) product.category_id = category_id;
   if (price !== undefined) product.price = price;

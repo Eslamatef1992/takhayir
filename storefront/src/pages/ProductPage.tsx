@@ -5,12 +5,15 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { FacebookIcon, HeartIcon, MailIcon, TwitterIcon, WhatsAppIcon } from '../components/Icons';
 import talyIcon from '../assets/payments/taly.svg';
+import { useLanguage } from '../i18n/LanguageContext';
 
 interface ProductDetail {
   id: number;
   name: string;
+  name_ar: string | null;
   slug: string;
   description: string | null;
+  description_ar: string | null;
   sku: string | null;
   attributes: Record<string, string> | null;
   price: string;
@@ -20,8 +23,8 @@ interface ProductDetail {
   rating_count: number;
   images: { url: string; is_primary: boolean }[];
   variants: { id: number; name: string; price: string | null; stock_quantity: number }[];
-  vendor: { id: number; store_name: string; store_slug: string };
-  category: { id: number; name: string; slug: string } | null;
+  vendor: { id: number; store_name: string; store_name_ar?: string | null; store_slug: string };
+  category: { id: number; name: string; name_ar?: string | null; slug: string } | null;
 }
 
 interface Review {
@@ -44,6 +47,7 @@ export default function ProductPage() {
   const { slug } = useParams();
   const { user } = useAuth();
   const { addItem } = useCart();
+  const { t, pick } = useLanguage();
   const [product, setProduct] = useState<ProductDetail | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [activeImage, setActiveImage] = useState(0);
@@ -80,7 +84,7 @@ export default function ProductPage() {
     [product, selectedVariantId]
   );
 
-  if (!product) return <div className="spinner">Loading...</div>;
+  if (!product) return <div className="spinner">{t('Loading...')}</div>;
 
   const image = product.images[activeImage];
   const imageUrl = image ? `${API_ORIGIN}${image.url}` : null;
@@ -91,7 +95,8 @@ export default function ProductPage() {
   const inStock = stock > 0;
   const talyInstallment = price / 4;
   const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
-  const description = product.description || '';
+  const productName = pick(product.name, product.name_ar);
+  const description = pick(product.description || '', product.description_ar);
   const isLongDescription = description.length > DESCRIPTION_PREVIEW_LENGTH;
   const shownDescription = descExpanded || !isLongDescription ? description : `${description.slice(0, DESCRIPTION_PREVIEW_LENGTH)}...`;
 
@@ -107,7 +112,7 @@ export default function ProductPage() {
         variantName: selectedVariant?.name
       });
     } catch {
-      setMessage('Could not add to cart.');
+      setMessage(t('Could not add to cart.'));
     } finally {
       setAdding(false);
     }
@@ -115,7 +120,7 @@ export default function ProductPage() {
 
   async function handleToggleWishlist() {
     if (!user) {
-      setMessage('Please log in to save items to your wishlist.');
+      setMessage(t('Please log in to save items to your wishlist.'));
       return;
     }
     setWishlistBusy(true);
@@ -135,15 +140,15 @@ export default function ProductPage() {
   return (
     <div>
       <div className="pdp-breadcrumbs">
-        <Link to="/">Home</Link>
+        <Link to="/">{t('Home')}</Link>
         {product.category && (
           <>
             <span className="sep">&gt;</span>
-            <Link to={`/categories/${product.category.slug}`}>{product.category.name}</Link>
+            <Link to={`/categories/${product.category.slug}`}>{pick(product.category.name, product.category.name_ar)}</Link>
           </>
         )}
         <span className="sep">&gt;</span>
-        <span className="current">{product.name}</span>
+        <span className="current">{productName}</span>
       </div>
 
       <div className="split-2">
@@ -162,19 +167,19 @@ export default function ProductPage() {
             </div>
           )}
           <div className="pdp-main-image">
-            {discountPct !== null && <span className="pdp-save-badge">Save {discountPct}%</span>}
-            {imageUrl ? <img src={imageUrl} alt={product.name} /> : <span className="text-muted">No image</span>}
+            {discountPct !== null && <span className="pdp-save-badge">{t('You save')} {discountPct}%</span>}
+            {imageUrl ? <img src={imageUrl} alt={productName} /> : <span className="text-muted">{t('No image')}</span>}
           </div>
         </div>
 
         <div>
           <Link to={`/vendors/${product.vendor.store_slug}`} className="pdp-vendor">
-            {product.vendor.store_name}
+            {pick(product.vendor.store_name, product.vendor.store_name_ar)}
           </Link>
-          <h1 className="pdp-title">{product.name}</h1>
+          <h1 className="pdp-title">{productName}</h1>
           {Number(product.rating_count) > 0 && (
             <div className="text-muted" style={{ marginBottom: 10 }}>
-              ★ {Number(product.rating_avg).toFixed(1)} ({product.rating_count} reviews)
+              ★ {Number(product.rating_avg).toFixed(1)} ({product.rating_count} {t('reviews')})
             </div>
           )}
 
@@ -184,16 +189,16 @@ export default function ProductPage() {
             {discountPct !== null && <span className="pdp-discount-chip">-{discountPct}%</span>}
           </div>
 
-          {product.sku && <div className="pdp-meta-row">SKU: {product.sku}</div>}
+          {product.sku && <div className="pdp-meta-row">{t('SKU')}: {product.sku}</div>}
 
           <div className={`pdp-stock ${inStock ? 'in' : 'out'}`}>
             <span className="pdp-stock-dot" />
-            {inStock ? 'In stock' : 'Out of stock'}
+            {inStock ? t('In stock') : t('Out of stock')}
           </div>
 
           {product.variants.length > 0 && (
             <>
-              <div className="pdp-attr-label">Options: {selectedVariant?.name}</div>
+              <div className="pdp-attr-label">{t('Options')}: {selectedVariant?.name}</div>
               <div className="pdp-swatches">
                 {product.variants.map((v) => (
                   <button
@@ -212,8 +217,8 @@ export default function ProductPage() {
           <div className="pdp-taly">
             <img src={talyIcon} alt="Taly" className="pdp-taly-badge-img" />
             <div className="pdp-taly-text">
-              <div className="pdp-taly-title">Split into 4 payments of KWD {talyInstallment.toFixed(3)}</div>
-              <div className="pdp-taly-sub">0% Interest, 100% Shariah-compliant.</div>
+              <div className="pdp-taly-title">{t('Split into 4 payments of')} KWD {talyInstallment.toFixed(3)}</div>
+              <div className="pdp-taly-sub">{t('0% Interest, 100% Shariah-compliant.')}</div>
             </div>
           </div>
 
@@ -228,7 +233,7 @@ export default function ProductPage() {
               </button>
             </div>
             <button className="btn btn-primary" style={{ flex: 1 }} disabled={adding || !inStock} onClick={handleAddToCart}>
-              {!inStock ? 'Sold out' : adding ? 'Adding...' : 'Add to cart'}
+              {!inStock ? t('Sold out') : adding ? t('Adding...') : t('Add to cart')}
             </button>
             <button
               className="btn btn-outline"
@@ -244,7 +249,7 @@ export default function ProductPage() {
 
           <div className="pdp-share-row">
             <span className="text-muted" style={{ fontSize: 13, fontWeight: 600 }}>
-              Share:
+              {t('Share')}:
             </span>
             <a
               href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`}
@@ -279,14 +284,14 @@ export default function ProductPage() {
 
       {description && (
         <section className="pdp-description">
-          <h2 className="pdp-description-heading">{product.name}</h2>
+          <h2 className="pdp-description-heading">{productName}</h2>
           <p style={{ lineHeight: 1.7, whiteSpace: 'pre-line' }}>{shownDescription}</p>
           {isLongDescription && (
             <button
               className="pdp-readmore"
               onClick={() => setDescExpanded((v) => !v)}
             >
-              {descExpanded ? 'Read less' : 'Read more'}
+              {descExpanded ? t('Read less') : t('Read more')}
             </button>
           )}
         </section>
@@ -294,7 +299,7 @@ export default function ProductPage() {
 
       {product.attributes && Object.keys(product.attributes).length > 0 && (
         <section style={{ marginTop: 32 }}>
-          <h2 style={{ fontSize: 18, marginBottom: 12 }}>Specifications</h2>
+          <h2 style={{ fontSize: 18, marginBottom: 12 }}>{t('Specifications')}</h2>
           <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
             {Object.entries(product.attributes).map(([key, value], idx) => (
               <div
@@ -316,8 +321,8 @@ export default function ProductPage() {
       )}
 
       <section style={{ marginTop: 48 }}>
-        <h2 style={{ fontSize: 18, marginBottom: 16 }}>Reviews</h2>
-        {reviews.length === 0 && <p className="text-muted">No reviews yet.</p>}
+        <h2 style={{ fontSize: 18, marginBottom: 16 }}>{t('Reviews')}</h2>
+        {reviews.length === 0 && <p className="text-muted">{t('No reviews yet.')}</p>}
         {reviews.map((r) => (
           <div key={r.id} className="card" style={{ padding: 16, marginBottom: 12 }}>
             <div style={{ fontWeight: 600, marginBottom: 4 }}>

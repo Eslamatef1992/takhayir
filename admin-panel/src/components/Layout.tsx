@@ -1,6 +1,8 @@
 import { NavLink, Outlet } from 'react-router-dom';
 import { Logo } from './Logo';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../i18n/LanguageContext';
+import { LanguageSwitcher } from './LanguageSwitcher';
 import { canView, PermissionArea } from '../utils/permissions';
 
 const navItems: { to: string; label: string; end?: boolean; area?: PermissionArea }[] = [
@@ -18,6 +20,7 @@ const navItems: { to: string; label: string; end?: boolean; area?: PermissionAre
 
 export function Layout() {
   const { user, logout } = useAuth();
+  const { t } = useLanguage();
   const visibleNavItems = navItems.filter((item) => !item.area || canView(user?.admin_role, item.area));
 
   return (
@@ -25,7 +28,7 @@ export function Layout() {
       <aside style={{ width: 220, background: '#fff', borderRight: '1px solid var(--border-color)', padding: '20px 16px', flexShrink: 0 }}>
         <div style={{ marginBottom: 32, padding: '0 4px' }}>
           <Logo />
-          <div className="text-muted" style={{ fontSize: 11, marginTop: 4 }}>Admin Panel</div>
+          <div className="text-muted" style={{ fontSize: 11, marginTop: 4 }}>{t('Admin Panel')}</div>
         </div>
         <nav style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           {visibleNavItems.map((item) => (
@@ -42,7 +45,7 @@ export function Layout() {
                 color: isActive ? 'var(--brand-purple)' : 'var(--text-main)'
               })}
             >
-              {item.label}
+              {t(item.label)}
             </NavLink>
           ))}
         </nav>
@@ -50,8 +53,9 @@ export function Layout() {
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         <header style={{ background: '#fff', borderBottom: '1px solid var(--border-color)', padding: '14px 24px', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 12 }}>
+          <LanguageSwitcher />
           <span className="text-muted" style={{ fontSize: 13 }}>{user?.first_name} {user?.last_name}</span>
-          <button className="btn btn-outline" onClick={logout}>Log out</button>
+          <button className="btn btn-outline" onClick={logout}>{t('Log out')}</button>
         </header>
         <main style={{ flex: 1, padding: 24 }}>
           <Outlet />

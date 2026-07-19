@@ -4,8 +4,10 @@ import { apiClient, ApiEnvelope } from '../api/client';
 interface VendorProfile {
   id: number;
   store_name: string;
+  store_name_ar: string | null;
   store_slug: string;
   description: string | null;
+  description_ar: string | null;
   business_type: string | null;
   tax_number: string | null;
   iban: string | null;
@@ -45,8 +47,16 @@ export default function StoreSettingsPage() {
           <input value={form.store_name || ''} onChange={(e) => setForm({ ...form, store_name: e.target.value })} required />
         </div>
         <div className="form-group">
+          <label>Store name (Arabic, optional)</label>
+          <input dir="rtl" value={form.store_name_ar || ''} onChange={(e) => setForm({ ...form, store_name_ar: e.target.value })} placeholder="اسم المتجر بالعربية" />
+        </div>
+        <div className="form-group">
           <label>Description</label>
           <textarea rows={4} value={form.description || ''} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+        </div>
+        <div className="form-group">
+          <label>Description (Arabic, optional)</label>
+          <textarea dir="rtl" rows={4} value={form.description_ar || ''} onChange={(e) => setForm({ ...form, description_ar: e.target.value })} placeholder="الوصف بالعربية" />
         </div>
         <div className="form-group">
           <label>Business type</label>

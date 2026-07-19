@@ -2,7 +2,9 @@ import { body } from 'express-validator';
 
 export const updateVendorProfileValidator = [
   body('store_name').optional().trim().notEmpty(),
+  body('store_name_ar').optional({ nullable: true }).isString(),
   body('description').optional().isString(),
+  body('description_ar').optional({ nullable: true }).isString(),
   body('business_type').optional().isString(),
   body('tax_number').optional().isString(),
   body('registration_number').optional().isString(),
@@ -25,6 +27,7 @@ export const adminUpdateVendorValidator = [
   body('store_name').optional().trim().notEmpty(),
   body('store_name_ar').optional({ nullable: true }).isString(),
   body('description').optional({ nullable: true }).isString(),
+  body('description_ar').optional({ nullable: true }).isString(),
   body('business_type').optional({ nullable: true }).isString(),
   body('tax_number').optional({ nullable: true }).isString(),
   body('registration_number').optional({ nullable: true }).isString(),

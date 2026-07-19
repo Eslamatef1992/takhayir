@@ -52,14 +52,16 @@ export const uploadCategoryImage = catchAsync(async (req: Request, res: Response
 });
 
 export const createCategory = catchAsync(async (req: Request, res: Response) => {
-  const { name, parent_id, description, icon, image, is_active, sort_order } = req.body;
+  const { name, name_ar, parent_id, description, description_ar, icon, image, is_active, sort_order } = req.body;
   const slug = await uniqueSlug(name, (s) => Category.findOne({ where: { slug: s } }));
 
   const category = await Category.create({
     name,
+    name_ar: name_ar ?? null,
     slug,
     parent_id: parent_id ?? null,
     description: description ?? null,
+    description_ar: description_ar ?? null,
     icon: icon ?? null,
     image: image ?? null,
     is_active: is_active ?? true,
@@ -73,7 +75,7 @@ export const updateCategory = catchAsync(async (req: Request, res: Response) => 
   const category = await Category.findByPk(req.params.id);
   if (!category) throw ApiError.notFound('Category not found');
 
-  const { name, parent_id, description, icon, image, is_active, sort_order } = req.body;
+  const { name, name_ar, parent_id, description, description_ar, icon, image, is_active, sort_order } = req.body;
 
   if (name && name !== category.name) {
     category.slug = await uniqueSlug(name, (s) =>
@@ -81,8 +83,10 @@ export const updateCategory = catchAsync(async (req: Request, res: Response) => 
     );
     category.name = name;
   }
+  if (name_ar !== undefined) category.name_ar = name_ar;
   if (parent_id !== undefined) category.parent_id = parent_id;
   if (description !== undefined) category.description = description;
+  if (description_ar !== undefined) category.description_ar = description_ar;
   if (icon !== undefined) category.icon = icon;
   if (image !== undefined) category.image = image;
   if (is_active !== undefined) category.is_active = is_active;

@@ -5,6 +5,7 @@ import { ProductCard, ProductSummary } from '../components/ProductCard';
 import { HeroBanner } from '../components/HeroBanner';
 import { Reveal } from '../components/Reveal';
 import { ShieldIcon, StoreIcon, TagIcon, TruckIcon } from '../components/Icons';
+import { useLanguage } from '../i18n/LanguageContext';
 
 const STORE_GRADIENTS = [
   'linear-gradient(135deg, #f9622c, #d6247a)',
@@ -16,6 +17,7 @@ const STORE_GRADIENTS = [
 interface Category {
   id: number;
   name: string;
+  name_ar?: string | null;
   slug: string;
   image: string | null;
   children: Category[];
@@ -26,9 +28,11 @@ const API_ORIGIN = (import.meta.env.VITE_API_URL || 'http://localhost:4000/api')
 interface VendorSummary {
   id: number;
   store_name: string;
+  store_name_ar?: string | null;
   store_slug: string;
   store_logo: string | null;
   description: string | null;
+  description_ar?: string | null;
   is_featured?: boolean;
 }
 
@@ -62,6 +66,7 @@ function ProductCardSkeleton() {
 }
 
 export default function HomePage() {
+  const { t, pick } = useLanguage();
   const [categories, setCategories] = useState<Category[]>([]);
   const [featured, setFeatured] = useState<ProductSummary[]>([]);
   const [sectionTitle, setSectionTitle] = useState('Featured products');
@@ -112,8 +117,8 @@ export default function HomePage() {
                   <Icon size={21} />
                 </div>
                 <div>
-                  <div style={{ fontWeight: 800, fontSize: 14.5, marginBottom: 2 }}>{title}</div>
-                  <div className="text-muted" style={{ fontSize: 12.5, lineHeight: 1.5 }}>{copy}</div>
+                  <div style={{ fontWeight: 800, fontSize: 14.5, marginBottom: 2 }}>{t(title)}</div>
+                  <div className="text-muted" style={{ fontSize: 12.5, lineHeight: 1.5 }}>{t(copy)}</div>
                 </div>
               </div>
             </Reveal>
@@ -125,8 +130,8 @@ export default function HomePage() {
         <Reveal>
           <div className="section-head">
             <div>
-              <span className="eyebrow">Curated for you</span>
-              <h2>Shop by Popular Categories</h2>
+              <span className="eyebrow">{t('Curated for you')}</span>
+              <h2>{t('Shop by Popular Categories')}</h2>
             </div>
           </div>
         </Reveal>
@@ -146,7 +151,7 @@ export default function HomePage() {
                 >
                   {imageUrl && <img src={imageUrl} alt={cat.name} className="category-tile-img" />}
                   <span className="category-tile-scrim" />
-                  <span className="category-tile-label">{cat.name}</span>
+                  <span className="category-tile-label">{pick(cat.name, cat.name_ar)}</span>
                 </Link>
               </Reveal>
             );
@@ -160,11 +165,11 @@ export default function HomePage() {
         <Reveal>
           <div className="section-head">
             <div>
-              <span className="eyebrow">Hand-picked</span>
-              <h2>{sectionTitle}</h2>
+              <span className="eyebrow">{t('Hand-picked')}</span>
+              <h2>{t(sectionTitle)}</h2>
             </div>
             <Link to="/search?q=" className="section-link">
-              View all &rarr;
+              {t('View all')} &rarr;
             </Link>
           </div>
         </Reveal>
@@ -176,7 +181,7 @@ export default function HomePage() {
           </div>
         ) : featured.length === 0 ? (
           <div className="card" style={{ padding: 40, textAlign: 'center' }}>
-            <p className="text-muted">No products yet — check back soon as vendors add their catalogs.</p>
+            <p className="text-muted">{t('No products yet — check back soon as vendors add their catalogs.')}</p>
           </div>
         ) : (
           <div className="grid-products">
@@ -193,11 +198,11 @@ export default function HomePage() {
         <Reveal>
           <div className="section-head">
             <div>
-              <span className="eyebrow">Trusted sellers</span>
-              <h2>Featured stores</h2>
+              <span className="eyebrow">{t('Trusted sellers')}</span>
+              <h2>{t('Featured stores')}</h2>
             </div>
             <Link to="/vendors" className="section-link">
-              View all &rarr;
+              {t('View all')} &rarr;
             </Link>
           </div>
         </Reveal>
@@ -209,14 +214,14 @@ export default function HomePage() {
           </div>
         ) : stores.length === 0 ? (
           <div className="card" style={{ padding: 40, textAlign: 'center' }}>
-            <p className="text-muted">No stores yet — check back soon.</p>
+            <p className="text-muted">{t('No stores yet — check back soon.')}</p>
           </div>
         ) : (
           <div className="category-tile-grid">
             {stores.map((v, idx) => (
               <Reveal key={v.id} delay={idx * 50}>
                 <Link to={`/vendors/${v.store_slug}`} className="card card-premium store-card">
-                  {v.is_featured && <span className="store-card-featured-tag">Featured</span>}
+                  {v.is_featured && <span className="store-card-featured-tag">{t('Featured')}</span>}
                   {v.store_logo ? (
                     <div className="store-card-icon store-card-icon-logo">
                       <img
@@ -232,8 +237,8 @@ export default function HomePage() {
                       <StoreIcon size={38} />
                     </div>
                   )}
-                  <div className="store-card-name">{v.store_name}</div>
-                  {v.description && <p className="store-card-desc">{v.description}</p>}
+                  <div className="store-card-name">{pick(v.store_name, v.store_name_ar)}</div>
+                  {v.description && <p className="store-card-desc">{pick(v.description, v.description_ar)}</p>}
                 </Link>
               </Reveal>
             ))}
@@ -244,11 +249,10 @@ export default function HomePage() {
       <Reveal>
         <section className="vendor-cta">
           <div className="vendor-cta-text">
-            <span className="eyebrow eyebrow-light">Sell on Takhayir</span>
-            <h2 style={{ marginTop: 10 }}>Have something to sell?</h2>
+            <span className="eyebrow eyebrow-light">{t('Sell on Takhayir')}</span>
+            <h2 style={{ marginTop: 10 }}>{t('Have something to sell?')}</h2>
             <p>
-              Open your own store on Takhayir and reach customers across every category, with your own
-              dashboard for products, orders and payouts.
+              {t('Open your own store on Takhayir and reach customers across every category, with your own dashboard for products, orders and payouts.')}
             </p>
           </div>
           <a
@@ -257,7 +261,7 @@ export default function HomePage() {
             rel="noopener noreferrer"
             className="btn hero-cta vendor-cta-btn"
           >
-            Become a vendor
+            {t('Become a vendor')}
           </a>
         </section>
       </Reveal>

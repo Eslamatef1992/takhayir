@@ -18,9 +18,11 @@ export const adminUpdatePage = catchAsync(async (req: Request, res: Response) =>
   const page = await Page.findOne({ where: { slug: req.params.slug } });
   if (!page) throw ApiError.notFound('Page not found');
 
-  const { title, body, meta_description } = req.body;
+  const { title, title_ar, body, body_ar, meta_description } = req.body;
   if (title !== undefined) page.title = title;
+  if (title_ar !== undefined) page.title_ar = title_ar;
   if (body !== undefined) page.body = body;
+  if (body_ar !== undefined) page.body_ar = body_ar;
   if (meta_description !== undefined) page.meta_description = meta_description;
   await page.save();
 

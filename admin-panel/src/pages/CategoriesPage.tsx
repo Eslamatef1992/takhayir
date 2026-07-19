@@ -4,6 +4,7 @@ import { apiClient, ApiEnvelope } from '../api/client';
 interface Category {
   id: number;
   name: string;
+  name_ar: string | null;
   slug: string;
   parent_id: number | null;
   is_active: boolean;
@@ -17,6 +18,7 @@ export default function CategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [flat, setFlat] = useState<Category[]>([]);
   const [name, setName] = useState('');
+  const [nameAr, setNameAr] = useState('');
   const [parentId, setParentId] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [uploading, setUploading] = useState(false);
@@ -63,8 +65,9 @@ export default function CategoriesPage() {
 
   async function handleCreate(e: FormEvent) {
     e.preventDefault();
-    await apiClient.post('/categories', { name, parent_id: parentId ? Number(parentId) : null, image: imageUrl || null });
+    await apiClient.post('/categories', { name, name_ar: nameAr || null, parent_id: parentId ? Number(parentId) : null, image: imageUrl || null });
     setName('');
+    setNameAr('');
     setParentId('');
     setImageUrl('');
     load();
@@ -138,6 +141,10 @@ export default function CategoriesPage() {
           <div className="form-group">
             <label>Name</label>
             <input value={name} onChange={(e) => setName(e.target.value)} required />
+          </div>
+          <div className="form-group">
+            <label>Arabic name (optional)</label>
+            <input dir="rtl" value={nameAr} onChange={(e) => setNameAr(e.target.value)} placeholder="الاسم بالعربية" />
           </div>
           <div className="form-group">
             <label>Parent (optional)</label>

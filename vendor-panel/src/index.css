@@ -50,3 +50,7 @@ th { color: var(--text-muted); font-weight: 600; font-size: 12px; text-transform
 .stat-card { padding: 20px; }
 .stat-value { font-size: 28px; font-weight: 800; }
 .stat-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.03em; }
+
+/* ---------- RTL (Arabic) support ---------- */
+[dir='rtl'] body { font-family: 'Segoe UI', Tahoma, 'Geeza Pro', 'Cairo', sans-serif; }
+[dir='rtl'] th, [dir='rtl'] td { text-align: right; }

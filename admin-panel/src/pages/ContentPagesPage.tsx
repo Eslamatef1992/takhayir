@@ -5,7 +5,9 @@ interface Page {
   id: number;
   slug: string;
   title: string;
+  title_ar: string | null;
   body: string;
+  body_ar: string | null;
   meta_description: string | null;
   updated_at: string;
 }
@@ -14,7 +16,7 @@ export default function ContentPagesPage() {
   const [pages, setPages] = useState<Page[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingSlug, setEditingSlug] = useState<string | null>(null);
-  const [form, setForm] = useState({ title: '', body: '', meta_description: '' });
+  const [form, setForm] = useState({ title: '', title_ar: '', body: '', body_ar: '', meta_description: '' });
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
 
@@ -30,7 +32,7 @@ export default function ContentPagesPage() {
 
   function openEdit(p: Page) {
     setEditingSlug(p.slug);
-    setForm({ title: p.title, body: p.body, meta_description: p.meta_description || '' });
+    setForm({ title: p.title, title_ar: p.title_ar || '', body: p.body, body_ar: p.body_ar || '', meta_description: p.meta_description || '' });
     setSaveError('');
   }
 
@@ -42,7 +44,9 @@ export default function ContentPagesPage() {
     try {
       await apiClient.put(`/cms/pages/${editingSlug}`, {
         title: form.title,
+        title_ar: form.title_ar || null,
         body: form.body,
+        body_ar: form.body_ar || null,
         meta_description: form.meta_description || null
       });
       setEditingSlug(null);
@@ -69,12 +73,20 @@ export default function ContentPagesPage() {
             <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required />
           </div>
           <div className="form-group">
+            <label>Title (Arabic, optional)</label>
+            <input dir="rtl" value={form.title_ar} onChange={(e) => setForm({ ...form, title_ar: e.target.value })} placeholder="العنوان بالعربية" />
+          </div>
+          <div className="form-group">
             <label>Meta description (optional, for search engines)</label>
             <input value={form.meta_description} onChange={(e) => setForm({ ...form, meta_description: e.target.value })} />
           </div>
           <div className="form-group">
             <label>Page content (HTML supported)</label>
             <textarea rows={14} value={form.body} onChange={(e) => setForm({ ...form, body: e.target.value })} style={{ fontFamily: 'monospace', fontSize: 13 }} required />
+          </div>
+          <div className="form-group">
+            <label>Page content (Arabic, optional, HTML supported)</label>
+            <textarea dir="rtl" rows={14} value={form.body_ar} onChange={(e) => setForm({ ...form, body_ar: e.target.value })} style={{ fontFamily: 'monospace', fontSize: 13 }} placeholder="المحتوى بالعربية" />
           </div>
           {saveError && <p className="error-text">{saveError}</p>}
           <div style={{ display: 'flex', gap: 10 }}>

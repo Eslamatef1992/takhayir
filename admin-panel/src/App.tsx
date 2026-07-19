@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { LanguageProvider } from './i18n/LanguageContext';
 import { Layout } from './components/Layout';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
@@ -18,6 +19,7 @@ import ContentPagesPage from './pages/ContentPagesPage';
 export default function App() {
   return (
     <BrowserRouter>
+      <LanguageProvider>
       <AuthProvider>
         <Routes>
           <Route path="login" element={<LoginPage />} />
@@ -41,6 +43,7 @@ export default function App() {
           </Route>
         </Routes>
       </AuthProvider>
+      </LanguageProvider>
     </BrowserRouter>
   );
 }

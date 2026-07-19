@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
+import { LanguageProvider } from './i18n/LanguageContext';
 import { Layout } from './components/Layout';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
@@ -27,6 +28,7 @@ import CmsPage from './pages/CmsPage';
 export default function App() {
   return (
     <BrowserRouter>
+      <LanguageProvider>
       <AuthProvider>
         <CartProvider>
           <Routes>
@@ -105,6 +107,7 @@ export default function App() {
           </Routes>
         </CartProvider>
       </AuthProvider>
+      </LanguageProvider>
     </BrowserRouter>
   );
 }

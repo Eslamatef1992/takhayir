@@ -12,6 +12,7 @@ export interface VendorAttributes {
   store_logo: string | null;
   store_banner: string | null;
   description: string | null;
+  description_ar: string | null;
   business_type: string | null;
   tax_number: string | null;
   registration_number: string | null;
@@ -29,7 +30,7 @@ export interface VendorAttributes {
 
 export type VendorCreationAttributes = Optional<
   VendorAttributes,
-  | 'id' | 'store_name_ar' | 'store_logo' | 'store_banner' | 'description' | 'business_type'
+  | 'id' | 'store_name_ar' | 'store_logo' | 'store_banner' | 'description' | 'description_ar' | 'business_type'
   | 'tax_number' | 'registration_number' | 'business_license_url' | 'category_id' | 'iban' | 'commission_rate'
   | 'status' | 'rejection_reason' | 'rating_avg' | 'is_featured'
 >;
@@ -43,6 +44,7 @@ export class Vendor extends Model<VendorAttributes, VendorCreationAttributes> im
   public store_logo!: string | null;
   public store_banner!: string | null;
   public description!: string | null;
+  public description_ar!: string | null;
   public business_type!: string | null;
   public tax_number!: string | null;
   public registration_number!: string | null;
@@ -68,6 +70,7 @@ Vendor.init(
     store_logo: { type: DataTypes.STRING(500), allowNull: true },
     store_banner: { type: DataTypes.STRING(500), allowNull: true },
     description: { type: DataTypes.TEXT, allowNull: true },
+    description_ar: { type: DataTypes.TEXT, allowNull: true },
     business_type: { type: DataTypes.STRING(100), allowNull: true },
     tax_number: { type: DataTypes.STRING(100), allowNull: true },
     registration_number: { type: DataTypes.STRING(100), allowNull: true },

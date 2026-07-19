@@ -4,7 +4,9 @@ import { sequelize } from '../config/database';
 export interface BannerAttributes {
   id: number;
   title: string | null;
+  title_ar: string | null;
   subtitle: string | null;
+  subtitle_ar: string | null;
   image_url: string;
   link_url: string | null;
   is_active: boolean;
@@ -14,13 +16,15 @@ export interface BannerAttributes {
 }
 
 export type BannerCreationAttributes = Optional<
-  BannerAttributes, 'id' | 'title' | 'subtitle' | 'link_url' | 'is_active' | 'sort_order'
+  BannerAttributes, 'id' | 'title' | 'title_ar' | 'subtitle' | 'subtitle_ar' | 'link_url' | 'is_active' | 'sort_order'
 >;
 
 export class Banner extends Model<BannerAttributes, BannerCreationAttributes> implements BannerAttributes {
   public id!: number;
   public title!: string | null;
+  public title_ar!: string | null;
   public subtitle!: string | null;
+  public subtitle_ar!: string | null;
   public image_url!: string;
   public link_url!: string | null;
   public is_active!: boolean;
@@ -33,7 +37,9 @@ Banner.init(
   {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
     title: { type: DataTypes.STRING(200), allowNull: true },
+    title_ar: { type: DataTypes.STRING(200), allowNull: true },
     subtitle: { type: DataTypes.STRING(300), allowNull: true },
+    subtitle_ar: { type: DataTypes.STRING(300), allowNull: true },
     image_url: { type: DataTypes.STRING(500), allowNull: false },
     link_url: { type: DataTypes.STRING(500), allowNull: true },
     is_active: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true },

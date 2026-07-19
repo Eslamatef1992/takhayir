@@ -3,12 +3,15 @@ import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { Logo } from './Logo';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import { useLanguage } from '../i18n/LanguageContext';
+import { LanguageSwitcher } from './LanguageSwitcher';
 import { apiClient, ApiEnvelope } from '../api/client';
 import { CartIcon, ChevronDownIcon, HeartIcon, SearchIcon, UserIcon } from './Icons';
 
 interface Category {
   id: number;
   name: string;
+  name_ar?: string | null;
   slug: string;
 }
 
@@ -19,6 +22,7 @@ interface CategoryNode extends Category {
 export function Header() {
   const { user, logout } = useAuth();
   const { itemCount } = useCart();
+  const { t, pick } = useLanguage();
   const navigate = useNavigate();
   const [q, setQ] = useState('');
   const [megaOpen, setMegaOpen] = useState(false);
@@ -62,7 +66,7 @@ export function Header() {
 
   return (
     <header className="site-header">
-      <div className="announce-bar">Shop from every vendor on Takhayir — one cart, endless stores.</div>
+      <div className="announce-bar">{t('Shop from every vendor on Takhayir — one cart, endless stores.')}</div>
 
       <div className="header-inner">
         <Link to="/" className="header-logo">
@@ -71,7 +75,7 @@ export function Header() {
 
         <nav className="primary-nav">
           <NavLink to="/" end className={({ isActive }) => `primary-nav-link${isActive ? ' active' : ''}`}>
-            Home
+            {t('Home')}
           </NavLink>
 
           <div className="mega-wrap" ref={megaWrapRef}>
@@ -79,12 +83,12 @@ export function Header() {
               className={`primary-nav-link mega-trigger${megaOpen ? ' active' : ''}`}
               onClick={() => setMegaOpen((o) => !o)}
             >
-              Categories <ChevronDownIcon size={14} />
+              {t('Categories')} <ChevronDownIcon size={14} />
             </button>
           </div>
 
           <NavLink to="/vendors" className={({ isActive }) => `primary-nav-link${isActive ? ' active' : ''}`}>
-            Vendors
+            {t('Vendors')}
           </NavLink>
         </nav>
 
@@ -93,11 +97,13 @@ export function Header() {
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Search products, categories, stores..."
+            placeholder={t('Search products, categories, stores...')}
           />
         </form>
 
         <div className="header-icons">
+          <LanguageSwitcher />
+
           <Link to="/wishlist" className="icon-link" aria-label="Wishlist">
             <HeartIcon size={21} />
           </Link>
@@ -117,7 +123,7 @@ export function Header() {
                 {user ? (
                   <>
                     <Link to="/profile" className="account-panel-link" onClick={() => setAccountOpen(false)}>
-                      My profile
+                      {t('My profile')}
                     </Link>
                     <button
                       className="account-panel-link account-panel-btn"
@@ -126,16 +132,16 @@ export function Header() {
                         setAccountOpen(false);
                       }}
                     >
-                      Log out
+                      {t('Log out')}
                     </button>
                   </>
                 ) : (
                   <>
                     <Link to="/login" className="account-panel-link" onClick={() => setAccountOpen(false)}>
-                      Log in
+                      {t('Log in')}
                     </Link>
                     <Link to="/register" className="account-panel-link" onClick={() => setAccountOpen(false)}>
-                      Sign up
+                      {t('Sign up')}
                     </Link>
                   </>
                 )}
@@ -151,7 +157,7 @@ export function Header() {
             {categoryTree.map((cat) => (
               <div key={cat.id} className="mega-col">
                 <Link to={`/categories/${cat.slug}`} className="mega-col-title" onClick={() => setMegaOpen(false)}>
-                  {cat.name}
+                  {pick(cat.name, cat.name_ar)}
                 </Link>
                 {cat.children?.map((child) => (
                   <Link
@@ -160,7 +166,7 @@ export function Header() {
                     className="mega-col-link"
                     onClick={() => setMegaOpen(false)}
                   >
-                    {child.name}
+                    {pick(child.name, child.name_ar)}
                   </Link>
                 ))}
               </div>

@@ -8,8 +8,10 @@ export interface ProductAttributes {
   vendor_id: number;
   category_id: number | null;
   name: string;
+  name_ar: string | null;
   slug: string;
   description: string | null;
+  description_ar: string | null;
   sku: string | null;
   price: number;
   compare_at_price: number | null;
@@ -27,7 +29,7 @@ export interface ProductAttributes {
 
 export type ProductCreationAttributes = Optional<
   ProductAttributes,
-  | 'id' | 'category_id' | 'description' | 'sku' | 'compare_at_price' | 'stock_quantity'
+  | 'id' | 'category_id' | 'name_ar' | 'description' | 'description_ar' | 'sku' | 'compare_at_price' | 'stock_quantity'
   | 'weight_kg' | 'status' | 'rejection_reason' | 'is_featured' | 'rating_avg' | 'rating_count' | 'attributes'
 >;
 
@@ -36,8 +38,10 @@ export class Product extends Model<ProductAttributes, ProductCreationAttributes>
   public vendor_id!: number;
   public category_id!: number | null;
   public name!: string;
+  public name_ar!: string | null;
   public slug!: string;
   public description!: string | null;
+  public description_ar!: string | null;
   public sku!: string | null;
   public price!: number;
   public compare_at_price!: number | null;
@@ -59,8 +63,10 @@ Product.init(
     vendor_id: { type: DataTypes.INTEGER, allowNull: false },
     category_id: { type: DataTypes.INTEGER, allowNull: true },
     name: { type: DataTypes.STRING(200), allowNull: false },
+    name_ar: { type: DataTypes.STRING(200), allowNull: true },
     slug: { type: DataTypes.STRING(220), allowNull: false, unique: true },
     description: { type: DataTypes.TEXT, allowNull: true },
+    description_ar: { type: DataTypes.TEXT, allowNull: true },
     sku: { type: DataTypes.STRING(100), allowNull: true },
     price: { type: DataTypes.DECIMAL(10, 2), allowNull: false },
     compare_at_price: { type: DataTypes.DECIMAL(10, 2), allowNull: true },

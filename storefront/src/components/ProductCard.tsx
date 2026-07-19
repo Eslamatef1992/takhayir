@@ -1,21 +1,24 @@
 import { Link } from 'react-router-dom';
 import { StarIcon } from './Icons';
+import { useLanguage } from '../i18n/LanguageContext';
 
 export interface ProductSummary {
   id: number;
   name: string;
+  name_ar?: string | null;
   slug: string;
   price: string;
   compare_at_price: string | null;
   rating_avg: string;
   rating_count: number;
   images?: { url: string; is_primary: boolean }[];
-  vendor?: { store_name: string; store_slug: string };
+  vendor?: { store_name: string; store_name_ar?: string | null; store_slug: string };
 }
 
 const API_ORIGIN = (import.meta.env.VITE_API_URL || 'http://localhost:4000/api').replace(/\/api\/?$/, '');
 
 export function ProductCard({ product }: { product: ProductSummary }) {
+  const { t, pick } = useLanguage();
   const primaryImage = product.images?.find((i) => i.is_primary) || product.images?.[0];
   const imageUrl = primaryImage ? `${API_ORIGIN}${primaryImage.url}` : null;
   const price = Number(product.price);
@@ -28,13 +31,13 @@ export function ProductCard({ product }: { product: ProductSummary }) {
         {imageUrl ? (
           <img src={imageUrl} alt={product.name} className="product-card-img" />
         ) : (
-          <span className="text-faint" style={{ fontSize: 13 }}>No image</span>
+          <span className="text-faint" style={{ fontSize: 13 }}>{t('No image')}</span>
         )}
         {discountPct !== null && <span className="product-card-badge">-{discountPct}%</span>}
       </div>
       <div className="product-card-body">
-        {product.vendor && <div className="product-card-vendor">{product.vendor.store_name}</div>}
-        <div className="product-card-name">{product.name}</div>
+        {product.vendor && <div className="product-card-vendor">{pick(product.vendor.store_name, product.vendor.store_name_ar)}</div>}
+        <div className="product-card-name">{pick(product.name, product.name_ar)}</div>
         <div className="product-card-price-row">
           <span className="product-card-price">KWD {price.toFixed(3)}</span>
           {comparePrice && <span className="product-card-compare">KWD {comparePrice.toFixed(3)}</span>}

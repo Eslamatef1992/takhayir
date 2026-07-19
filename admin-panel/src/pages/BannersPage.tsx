@@ -17,7 +17,7 @@ export default function BannersPage() {
   const [banners, setBanners] = useState<Banner[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
-  const [form, setForm] = useState({ title: '', subtitle: '', link_url: '', image_url: '' });
+  const [form, setForm] = useState({ title: '', title_ar: '', subtitle: '', subtitle_ar: '', link_url: '', image_url: '' });
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   function load() {
@@ -54,7 +54,7 @@ export default function BannersPage() {
       return;
     }
     await apiClient.post('/banners', form);
-    setForm({ title: '', subtitle: '', link_url: '', image_url: '' });
+    setForm({ title: '', title_ar: '', subtitle: '', subtitle_ar: '', link_url: '', image_url: '' });
     load();
   }
 
@@ -130,8 +130,16 @@ export default function BannersPage() {
             <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
           </div>
           <div className="form-group">
+            <label>Title (Arabic, optional)</label>
+            <input dir="rtl" value={form.title_ar} onChange={(e) => setForm({ ...form, title_ar: e.target.value })} placeholder="العنوان بالعربية" />
+          </div>
+          <div className="form-group">
             <label>Subtitle (optional)</label>
             <input value={form.subtitle} onChange={(e) => setForm({ ...form, subtitle: e.target.value })} />
+          </div>
+          <div className="form-group">
+            <label>Subtitle (Arabic, optional)</label>
+            <input dir="rtl" value={form.subtitle_ar} onChange={(e) => setForm({ ...form, subtitle_ar: e.target.value })} placeholder="العنوان الفرعي بالعربية" />
           </div>
           <div className="form-group">
             <label>Link URL (optional)</label>

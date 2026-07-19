@@ -39,7 +39,7 @@ export default function ProductsPage() {
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [form, setForm] = useState({ name: '', description: '', price: '', stock_quantity: '', category_id: '' });
+  const [form, setForm] = useState({ name: '', name_ar: '', description: '', description_ar: '', price: '', stock_quantity: '', category_id: '' });
   const [attributeValues, setAttributeValues] = useState<Record<string, string>>({});
   const [variantTypeId, setVariantTypeId] = useState('');
   const [variantRows, setVariantRows] = useState<VariantRow[]>([]);
@@ -98,14 +98,16 @@ export default function ProductsPage() {
     try {
       await apiClient.post('/products', {
         name: form.name,
+        name_ar: form.name_ar || null,
         description: form.description,
+        description_ar: form.description_ar || null,
         price: Number(form.price),
         stock_quantity: Number(form.stock_quantity || 0),
         category_id: form.category_id ? Number(form.category_id) : null,
         attributes: Object.keys(attributes).length ? attributes : null,
         variants: variants.length ? variants : undefined
       });
-      setForm({ name: '', description: '', price: '', stock_quantity: '', category_id: '' });
+      setForm({ name: '', name_ar: '', description: '', description_ar: '', price: '', stock_quantity: '', category_id: '' });
       setAttributeValues({});
       setVariantRows([]);
       setVariantTypeId('');
@@ -152,6 +154,10 @@ export default function ProductsPage() {
             <div className="form-group">
               <label>Name</label>
               <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+            </div>
+            <div className="form-group">
+              <label>Name (Arabic, optional)</label>
+              <input dir="rtl" value={form.name_ar} onChange={(e) => setForm({ ...form, name_ar: e.target.value })} placeholder="الاسم بالعربية" />
             </div>
             <div className="form-group">
               <label>Category</label>
@@ -209,6 +215,10 @@ export default function ProductsPage() {
           <div className="form-group">
             <label>Description</label>
             <textarea rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+          </div>
+          <div className="form-group">
+            <label>Description (Arabic, optional)</label>
+            <textarea dir="rtl" rows={3} value={form.description_ar} onChange={(e) => setForm({ ...form, description_ar: e.target.value })} placeholder="الوصف بالعربية" />
           </div>
 
           {variantTypes.length > 0 && (
