@@ -93,6 +93,17 @@ export async function loginUser(email: string, password: string) {
   return buildAuthResponse(user);
 }
 
+export async function changePassword(userId: number, currentPassword: string, newPassword: string) {
+  const user = await User.findByPk(userId);
+  if (!user) throw ApiError.notFound('User not found');
+
+  const valid = await bcrypt.compare(currentPassword, user.password_hash);
+  if (!valid) throw ApiError.unauthorized('Current password is incorrect');
+
+  user.password_hash = await bcrypt.hash(newPassword, 10);
+  await user.save();
+}
+
 export async function requestPasswordReset(email: string) {
   const user = await User.findOne({ where: { email } });
 

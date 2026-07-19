@@ -4,6 +4,25 @@ import { catchAsync } from '../utils/catchAsync';
 import { ApiError } from '../utils/ApiError';
 import { Coupon, Vendor } from '../models';
 
+// Customer-facing: browse currently usable coupons (platform-wide or vendor-specific)
+export const listAvailableCoupons = catchAsync(async (_req: Request, res: Response) => {
+  const now = new Date();
+  const coupons = await Coupon.findAll({
+    where: {
+      is_active: true,
+      [Op.and]: [
+        { [Op.or]: [{ starts_at: null }, { starts_at: { [Op.lte]: now } }] },
+        { [Op.or]: [{ expires_at: null }, { expires_at: { [Op.gte]: now } }] }
+      ]
+    },
+    include: [{ model: Vendor, as: 'vendor', attributes: ['id', 'store_name', 'store_slug'] }],
+    order: [['created_at', 'DESC']]
+  });
+
+  const usable = coupons.filter((c) => !c.usage_limit || c.used_count < c.usage_limit);
+  res.json({ success: true, data: usable });
+});
+
 export const listMyCoupons = catchAsync(async (req: Request, res: Response) => {
   let vendorId: number | null = null;
   if (req.user!.role === 'vendor') {

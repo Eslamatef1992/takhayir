@@ -57,6 +57,18 @@ router.post(
 
 /**
  * @openapi
+ * /api/coupons/available:
+ *   get:
+ *     tags: [Coupons]
+ *     summary: List currently usable coupons (customer-facing "My Coupons")
+ *     security: [{ bearerAuth: [] }]
+ *     responses:
+ *       200: { description: Coupon list }
+ */
+router.get('/available', authenticate, couponController.listAvailableCoupons);
+
+/**
+ * @openapi
  * /api/coupons/{id}:
  *   delete:
  *     tags: [Coupons]

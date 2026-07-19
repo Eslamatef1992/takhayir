@@ -4,7 +4,8 @@ import {
   loginValidator,
   registerValidator,
   forgotPasswordValidator,
-  resetPasswordValidator
+  resetPasswordValidator,
+  changePasswordValidator
 } from '../validators/authValidators';
 import { validateRequest } from '../middleware/validateRequest';
 import { authenticate } from '../middleware/auth';
@@ -114,5 +115,28 @@ router.post('/forgot-password', forgotPasswordValidator, validateRequest, authCo
  *       400: { description: Invalid or expired token }
  */
 router.post('/reset-password', resetPasswordValidator, validateRequest, authController.resetPasswordHandler);
+
+/**
+ * @openapi
+ * /api/auth/change-password:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Change the current user's password (must know the current one)
+ *     security: [{ bearerAuth: [] }]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [current_password, new_password]
+ *             properties:
+ *               current_password: { type: string }
+ *               new_password: { type: string }
+ *     responses:
+ *       200: { description: Password updated }
+ *       401: { description: Current password is incorrect }
+ */
+router.post('/change-password', authenticate, changePasswordValidator, validateRequest, authController.changePasswordHandler);
 
 export default router;

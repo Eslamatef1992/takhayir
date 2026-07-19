@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { catchAsync } from '../utils/catchAsync';
-import { loginUser, registerUser, requestPasswordReset, resetPassword } from '../services/authService';
+import { loginUser, registerUser, requestPasswordReset, resetPassword, changePassword } from '../services/authService';
 import { User, Vendor } from '../models';
 import { ApiError } from '../utils/ApiError';
 
@@ -38,4 +38,10 @@ export const resetPasswordHandler = catchAsync(async (req: Request, res: Respons
   const { token, password } = req.body;
   await resetPassword(token, password);
   res.status(200).json({ success: true, message: 'Your password has been reset. You can now log in.' });
+});
+
+export const changePasswordHandler = catchAsync(async (req: Request, res: Response) => {
+  const { current_password, new_password } = req.body;
+  await changePassword(req.user!.id, current_password, new_password);
+  res.status(200).json({ success: true, message: 'Your password has been updated.' });
 });

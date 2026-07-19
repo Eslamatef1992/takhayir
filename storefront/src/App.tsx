@@ -18,6 +18,9 @@ import OrderDetailPage from './pages/OrderDetailPage';
 import OrderConfirmationPage from './pages/OrderConfirmationPage';
 import VendorsPage from './pages/VendorsPage';
 import WishlistPage from './pages/WishlistPage';
+import AddressesPage from './pages/AddressesPage';
+import ChangePasswordPage from './pages/ChangePasswordPage';
+import CustomerCouponsPage from './pages/CustomerCouponsPage';
 
 export default function App() {
   return (
@@ -67,6 +70,30 @@ export default function App() {
                 element={
                   <ProtectedRoute>
                     <WishlistPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="addresses"
+                element={
+                  <ProtectedRoute>
+                    <AddressesPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="change-password"
+                element={
+                  <ProtectedRoute>
+                    <ChangePasswordPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="coupons"
+                element={
+                  <ProtectedRoute>
+                    <CustomerCouponsPage />
                   </ProtectedRoute>
                 }
               />

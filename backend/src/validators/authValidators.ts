@@ -26,3 +26,8 @@ export const resetPasswordValidator = [
   body('token').trim().notEmpty().withMessage('Reset token is required'),
   body('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters')
 ];
+
+export const changePasswordValidator = [
+  body('current_password').notEmpty().withMessage('Current password is required'),
+  body('new_password').isLength({ min: 8 }).withMessage('New password must be at least 8 characters')
+];

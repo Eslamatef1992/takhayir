@@ -119,6 +119,15 @@ export function Header() {
                     <Link to="/orders" className="account-panel-link" onClick={() => setAccountOpen(false)}>
                       My orders
                     </Link>
+                    <Link to="/addresses" className="account-panel-link" onClick={() => setAccountOpen(false)}>
+                      My addresses
+                    </Link>
+                    <Link to="/coupons" className="account-panel-link" onClick={() => setAccountOpen(false)}>
+                      My coupons
+                    </Link>
+                    <Link to="/change-password" className="account-panel-link" onClick={() => setAccountOpen(false)}>
+                      Update password
+                    </Link>
                     <button
                       className="account-panel-link account-panel-btn"
                       onClick={() => {
