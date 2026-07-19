@@ -16,16 +16,32 @@ interface Product {
   images: { url: string; is_primary: boolean }[];
 }
 
+interface VariantType {
+  id: number;
+  name: string;
+  values: { id: number; value: string }[];
+}
+
+interface VariantRow {
+  key: string;
+  name: string;
+  price: string;
+  stock_quantity: string;
+}
+
 const API_ORIGIN = (import.meta.env.VITE_API_URL || 'http://localhost:4000/api').replace(/\/api\/?$/, '');
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [variantTypes, setVariantTypes] = useState<VariantType[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [form, setForm] = useState({ name: '', description: '', price: '', stock_quantity: '', category_id: '' });
   const [attributeValues, setAttributeValues] = useState<Record<string, string>>({});
+  const [variantTypeId, setVariantTypeId] = useState('');
+  const [variantRows, setVariantRows] = useState<VariantRow[]>([]);
   const uploadInputRef = useRef<HTMLInputElement | null>(null);
   const [uploadTargetId, setUploadTargetId] = useState<number | null>(null);
 
@@ -43,12 +59,31 @@ export default function ProductsPage() {
   useEffect(() => {
     load();
     apiClient.get<ApiEnvelope<Category[]>>('/categories', { params: { flat: true } }).then((res) => setCategories(res.data.data));
+    apiClient.get<ApiEnvelope<VariantType[]>>('/variant-types').then((res) => setVariantTypes(res.data.data)).catch(() => {});
   }, []);
+
+  function toggleVariantValue(typeName: string, valueId: number, valueLabel: string) {
+    const key = `${typeName}:${valueId}`;
+    setVariantRows((rows) => {
+      const exists = rows.some((r) => r.key === key);
+      if (exists) return rows.filter((r) => r.key !== key);
+      return [...rows, { key, name: valueLabel, price: '', stock_quantity: '0' }];
+    });
+  }
+
+  function updateVariantRow(key: string, field: 'price' | 'stock_quantity', value: string) {
+    setVariantRows((rows) => rows.map((r) => (r.key === key ? { ...r, [field]: value } : r)));
+  }
 
   async function handleCreate(e: FormEvent) {
     e.preventDefault();
     setError('');
     const attributes = Object.fromEntries(Object.entries(attributeValues).filter(([, v]) => v));
+    const variants = variantRows.map((r) => ({
+      name: r.name,
+      price: r.price ? Number(r.price) : null,
+      stock_quantity: Number(r.stock_quantity || 0)
+    }));
     try {
       await apiClient.post('/products', {
         name: form.name,
@@ -56,10 +91,13 @@ export default function ProductsPage() {
         price: Number(form.price),
         stock_quantity: Number(form.stock_quantity || 0),
         category_id: form.category_id ? Number(form.category_id) : null,
-        attributes: Object.keys(attributes).length ? attributes : null
+        attributes: Object.keys(attributes).length ? attributes : null,
+        variants: variants.length ? variants : undefined
       });
       setForm({ name: '', description: '', price: '', stock_quantity: '', category_id: '' });
       setAttributeValues({});
+      setVariantRows([]);
+      setVariantTypeId('');
       setShowForm(false);
       load();
     } catch (err: any) {
@@ -156,6 +194,66 @@ export default function ProductsPage() {
             <label>Description</label>
             <textarea rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
           </div>
+
+          {variantTypes.length > 0 && (
+            <div className="form-group">
+              <label>Variants (optional)</label>
+              <select value={variantTypeId} onChange={(e) => setVariantTypeId(e.target.value)}>
+                <option value="">— Add variant options from a type —</option>
+                {variantTypes.map((t) => (
+                  <option key={t.id} value={t.id}>{t.name}</option>
+                ))}
+              </select>
+              {variantTypeId && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 10 }}>
+                  {variantTypes.find((t) => String(t.id) === variantTypeId)?.values.map((v) => {
+                    const typeName = variantTypes.find((t) => String(t.id) === variantTypeId)!.name;
+                    const key = `${typeName}:${v.id}`;
+                    const active = variantRows.some((r) => r.key === key);
+                    return (
+                      <button
+                        type="button"
+                        key={v.id}
+                        onClick={() => toggleVariantValue(typeName, v.id, v.value)}
+                        className={active ? 'btn btn-primary' : 'btn btn-outline'}
+                        style={{ padding: '5px 12px', fontSize: 12 }}
+                      >
+                        {v.value}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+              {variantRows.length > 0 && (
+                <div style={{ marginTop: 12, display: 'grid', gap: 8 }}>
+                  {variantRows.map((r) => (
+                    <div key={r.key} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <span style={{ flex: 1, fontSize: 13, fontWeight: 600 }}>{r.name}</span>
+                      <input
+                        type="number"
+                        step="0.001"
+                        placeholder="Price override (optional)"
+                        value={r.price}
+                        onChange={(e) => updateVariantRow(r.key, 'price', e.target.value)}
+                        style={{ width: 170 }}
+                      />
+                      <input
+                        type="number"
+                        placeholder="Stock"
+                        value={r.stock_quantity}
+                        onChange={(e) => updateVariantRow(r.key, 'stock_quantity', e.target.value)}
+                        style={{ width: 90 }}
+                      />
+                      <button type="button" className="btn btn-outline" onClick={() => setVariantRows((rows) => rows.filter((row) => row.key !== r.key))}>
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           {error && <p className="error-text">{error}</p>}
           <button className="btn btn-primary">Create product (goes to pending review)</button>
         </form>

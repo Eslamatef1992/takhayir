@@ -28,6 +28,20 @@ interface Product {
   attributes: Record<string, string> | null;
   vendor: { id: number; store_name: string };
   images: { url: string; is_primary: boolean }[];
+  variants?: { id: number; name: string; price: string | null; stock_quantity: number }[];
+}
+
+interface VariantType {
+  id: number;
+  name: string;
+  values: { id: number; value: string }[];
+}
+
+interface VariantRow {
+  key: string;
+  name: string;
+  price: string;
+  stock_quantity: string;
 }
 
 const API_ORIGIN = (import.meta.env.VITE_API_URL || 'http://localhost:4000/api').replace(/\/api\/?$/, '');
@@ -48,6 +62,7 @@ export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [variantTypes, setVariantTypes] = useState<VariantType[]>([]);
   const [filter, setFilter] = useState('');
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
@@ -56,6 +71,8 @@ export default function ProductsPage() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [attributeValues, setAttributeValues] = useState<Record<string, string>>({});
+  const [variantTypeId, setVariantTypeId] = useState('');
+  const [variantRows, setVariantRows] = useState<VariantRow[]>([]);
   const [formError, setFormError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [pendingImage, setPendingImage] = useState<File | null>(null);
@@ -82,12 +99,28 @@ export default function ProductsPage() {
   useEffect(() => {
     apiClient.get<ApiEnvelope<Vendor[]>>('/vendors/admin/all').then((res) => setVendors(res.data.data));
     apiClient.get<ApiEnvelope<Category[]>>('/categories', { params: { flat: true } }).then((res) => setCategories(res.data.data));
+    apiClient.get<ApiEnvelope<VariantType[]>>('/variant-types').then((res) => setVariantTypes(res.data.data)).catch(() => {});
   }, []);
+
+  function toggleVariantValue(typeName: string, valueId: number, valueLabel: string) {
+    const key = `${typeName}:${valueId}`;
+    setVariantRows((rows) => {
+      const exists = rows.some((r) => r.key === key);
+      if (exists) return rows.filter((r) => r.key !== key);
+      return [...rows, { key, name: valueLabel, price: '', stock_quantity: '0' }];
+    });
+  }
+
+  function updateVariantRow(key: string, field: 'price' | 'stock_quantity', value: string) {
+    setVariantRows((rows) => rows.map((r) => (r.key === key ? { ...r, [field]: value } : r)));
+  }
 
   function openAddForm() {
     setEditingId(null);
     setForm(emptyForm);
     setAttributeValues({});
+    setVariantRows([]);
+    setVariantTypeId('');
     setPendingImage(null);
     setFormError('');
     setShowForm(true);
@@ -95,6 +128,15 @@ export default function ProductsPage() {
 
   function openEditForm(p: Product) {
     setEditingId(p.id);
+    setVariantRows(
+      (p.variants || []).map((v) => ({
+        key: `existing:${v.id}`,
+        name: v.name,
+        price: v.price != null ? String(v.price) : '',
+        stock_quantity: String(v.stock_quantity ?? 0)
+      }))
+    );
+    setVariantTypeId('');
     setForm({
       vendor_id: String(p.vendor.id),
       name: p.name,
@@ -117,6 +159,8 @@ export default function ProductsPage() {
     setEditingId(null);
     setForm(emptyForm);
     setAttributeValues({});
+    setVariantRows([]);
+    setVariantTypeId('');
     setPendingImage(null);
     setFormError('');
   }
@@ -127,6 +171,11 @@ export default function ProductsPage() {
     setSubmitting(true);
     try {
       const attributes = Object.fromEntries(Object.entries(attributeValues).filter(([, v]) => v));
+      const variants = variantRows.map((r) => ({
+        name: r.name,
+        price: r.price ? Number(r.price) : null,
+        stock_quantity: Number(r.stock_quantity || 0)
+      }));
       const payload = {
         name: form.name,
         category_id: form.category_id ? Number(form.category_id) : null,
@@ -134,6 +183,7 @@ export default function ProductsPage() {
         compare_at_price: form.compare_at_price ? Number(form.compare_at_price) : null,
         stock_quantity: form.stock_quantity ? Number(form.stock_quantity) : 0,
         weight_kg: form.weight_kg ? Number(form.weight_kg) : null,
+        variants,
         sku: form.sku || null,
         description: form.description || null,
         attributes: Object.keys(attributes).length ? attributes : null
@@ -337,6 +387,65 @@ export default function ProductsPage() {
                 onChange={(e) => setPendingImage(e.target.files?.[0] || null)}
               />
             </div>
+
+            {variantTypes.length > 0 && (
+              <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+                <label>Variants (optional)</label>
+                <select value={variantTypeId} onChange={(e) => setVariantTypeId(e.target.value)}>
+                  <option value="">— Add variant options from a type —</option>
+                  {variantTypes.map((t) => (
+                    <option key={t.id} value={t.id}>{t.name}</option>
+                  ))}
+                </select>
+                {variantTypeId && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 10 }}>
+                    {variantTypes.find((t) => String(t.id) === variantTypeId)?.values.map((v) => {
+                      const typeName = variantTypes.find((t) => String(t.id) === variantTypeId)!.name;
+                      const key = `${typeName}:${v.id}`;
+                      const active = variantRows.some((r) => r.key === key);
+                      return (
+                        <button
+                          type="button"
+                          key={v.id}
+                          onClick={() => toggleVariantValue(typeName, v.id, v.value)}
+                          className={active ? 'btn btn-primary' : 'btn btn-outline'}
+                          style={{ padding: '5px 12px', fontSize: 12 }}
+                        >
+                          {v.value}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+                {variantRows.length > 0 && (
+                  <div style={{ marginTop: 12, display: 'grid', gap: 8 }}>
+                    {variantRows.map((r) => (
+                      <div key={r.key} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <span style={{ flex: 1, fontSize: 13, fontWeight: 600 }}>{r.name}</span>
+                        <input
+                          type="number"
+                          step="0.001"
+                          placeholder="Price override (optional)"
+                          value={r.price}
+                          onChange={(e) => updateVariantRow(r.key, 'price', e.target.value)}
+                          style={{ width: 170 }}
+                        />
+                        <input
+                          type="number"
+                          placeholder="Stock"
+                          value={r.stock_quantity}
+                          onChange={(e) => updateVariantRow(r.key, 'stock_quantity', e.target.value)}
+                          style={{ width: 90 }}
+                        />
+                        <button type="button" className="btn btn-outline" onClick={() => setVariantRows((rows) => rows.filter((row) => row.key !== r.key))}>
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           <div style={{ display: 'flex', gap: 10, marginTop: 18 }}>

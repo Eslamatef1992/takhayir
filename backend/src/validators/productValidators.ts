@@ -23,6 +23,7 @@ export const updateProductValidator = [
   body('compare_at_price').optional({ nullable: true }).isFloat({ min: 0 }),
   body('stock_quantity').optional().isInt({ min: 0 }),
   body('weight_kg').optional({ nullable: true }).isFloat({ min: 0 }),
+  body('variants').optional().isArray(),
   body('attributes').optional({ nullable: true }).isObject()
 ];
 

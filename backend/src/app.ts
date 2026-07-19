@@ -22,6 +22,9 @@ import wishlistRoutes from './routes/wishlistRoutes';
 import paymentRoutes from './routes/paymentRoutes';
 import dashboardRoutes from './routes/dashboardRoutes';
 import bannerRoutes from './routes/bannerRoutes';
+import adminUserRoutes from './routes/adminUserRoutes';
+import variantRoutes from './routes/variantRoutes';
+import cmsRoutes from './routes/cmsRoutes';
 
 dotenv.config();
 
@@ -73,6 +76,9 @@ app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/banners', bannerRoutes);
+app.use('/api/admin-users', adminUserRoutes);
+app.use('/api/variant-types', variantRoutes);
+app.use('/api/cms', cmsRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

@@ -8,7 +8,7 @@ import {
 } from '../validators/productValidators';
 import { validateRequest } from '../middleware/validateRequest';
 import { authenticate } from '../middleware/auth';
-import { requireRole } from '../middleware/roles';
+import { requireRole, gateAdminRole } from '../middleware/roles';
 import { upload } from '../middleware/upload';
 
 const router = Router();
@@ -132,6 +132,7 @@ router.post(
   '/admin',
   authenticate,
   requireRole('admin'),
+  gateAdminRole('products'),
   adminCreateProductValidator,
   validateRequest,
   productController.adminCreateProduct
@@ -167,11 +168,12 @@ router.put(
   '/admin/:id',
   authenticate,
   requireRole('admin'),
+  gateAdminRole('products'),
   updateProductValidator,
   validateRequest,
   productController.adminUpdateProduct
 );
-router.delete('/admin/:id', authenticate, requireRole('admin'), productController.adminDeleteProduct);
+router.delete('/admin/:id', authenticate, requireRole('admin'), gateAdminRole('products'), productController.adminDeleteProduct);
 
 /**
  * @openapi
@@ -200,6 +202,7 @@ router.post(
   '/admin/:id/images',
   authenticate,
   requireRole('admin'),
+  gateAdminRole('products'),
   upload.single('image'),
   productController.adminAddProductImage
 );
@@ -223,6 +226,7 @@ router.patch(
   '/:id/status',
   authenticate,
   requireRole('admin'),
+  gateAdminRole('products'),
   productStatusValidator,
   validateRequest,
   productController.updateProductStatus

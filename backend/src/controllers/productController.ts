@@ -150,7 +150,7 @@ async function assertOwnedProduct(productId: number, userId: number) {
 export const updateMyProduct = catchAsync(async (req: Request, res: Response) => {
   const product = await assertOwnedProduct(Number(req.params.id), req.user!.id);
 
-  const { name, description, sku, category_id, price, compare_at_price, stock_quantity, weight_kg, attributes } = req.body;
+  const { name, description, sku, category_id, price, compare_at_price, stock_quantity, weight_kg, attributes, variants } = req.body;
 
   if (name && name !== product.name) {
     product.slug = await uniqueSlug(name, (s) => Product.findOne({ where: { slug: s, id: { [Op.ne]: product.id } } }));
@@ -167,6 +167,23 @@ export const updateMyProduct = catchAsync(async (req: Request, res: Response) =>
   if (attributes !== undefined) product.attributes = attributes;
 
   await product.save();
+
+  if (Array.isArray(variants)) {
+    await ProductVariant.destroy({ where: { product_id: product.id } });
+    if (variants.length) {
+      await ProductVariant.bulkCreate(
+        variants.map((v: any) => ({
+          product_id: product.id,
+          name: v.name,
+          sku: v.sku ?? null,
+          price: v.price ?? null,
+          stock_quantity: v.stock_quantity ?? 0,
+          attributes: v.attributes ?? null
+        }))
+      );
+    }
+  }
+
   const updated = await Product.findByPk(product.id, { include: publicIncludes() });
   res.json({ success: true, data: updated });
 });
@@ -294,7 +311,7 @@ export const adminUpdateProduct = catchAsync(async (req: Request, res: Response)
   const product = await Product.findByPk(req.params.id);
   if (!product) throw ApiError.notFound('Product not found');
 
-  const { name, description, sku, category_id, price, compare_at_price, stock_quantity, weight_kg, vendor_id, status, attributes } = req.body;
+  const { name, description, sku, category_id, price, compare_at_price, stock_quantity, weight_kg, vendor_id, status, attributes, variants } = req.body;
 
   if (name && name !== product.name) {
     product.slug = await uniqueSlug(name, (s) => Product.findOne({ where: { slug: s, id: { [Op.ne]: product.id } } }));
@@ -316,6 +333,23 @@ export const adminUpdateProduct = catchAsync(async (req: Request, res: Response)
   }
 
   await product.save();
+
+  if (Array.isArray(variants)) {
+    await ProductVariant.destroy({ where: { product_id: product.id } });
+    if (variants.length) {
+      await ProductVariant.bulkCreate(
+        variants.map((v: any) => ({
+          product_id: product.id,
+          name: v.name,
+          sku: v.sku ?? null,
+          price: v.price ?? null,
+          stock_quantity: v.stock_quantity ?? 0,
+          attributes: v.attributes ?? null
+        }))
+      );
+    }
+  }
+
   const updated = await Product.findByPk(product.id, { include: publicIncludes() });
   res.json({ success: true, data: updated });
 });

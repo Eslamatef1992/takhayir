@@ -11,6 +11,9 @@ import ProductsPage from './pages/ProductsPage';
 import OrdersPage from './pages/OrdersPage';
 import CouponsPage from './pages/CouponsPage';
 import BannersPage from './pages/BannersPage';
+import AdminsPage from './pages/AdminsPage';
+import VariantsPage from './pages/VariantsPage';
+import ContentPagesPage from './pages/ContentPagesPage';
 
 export default function App() {
   return (
@@ -32,6 +35,9 @@ export default function App() {
             <Route path="orders" element={<OrdersPage />} />
             <Route path="coupons" element={<CouponsPage />} />
             <Route path="banners" element={<BannersPage />} />
+            <Route path="variants" element={<VariantsPage />} />
+            <Route path="content" element={<ContentPagesPage />} />
+            <Route path="admins" element={<AdminsPage />} />
           </Route>
         </Routes>
       </AuthProvider>

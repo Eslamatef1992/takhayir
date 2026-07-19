@@ -9,7 +9,7 @@ import {
 } from '../validators/vendorValidators';
 import { validateRequest } from '../middleware/validateRequest';
 import { authenticate } from '../middleware/auth';
-import { requireRole } from '../middleware/roles';
+import { requireRole, gateAdminRole } from '../middleware/roles';
 import { uploadDocument } from '../middleware/upload';
 
 const router = Router();
@@ -65,6 +65,7 @@ router.post(
   '/',
   authenticate,
   requireRole('admin'),
+  gateAdminRole('vendors'),
   adminCreateVendorValidator,
   validateRequest,
   vendorController.adminCreateVendor
@@ -161,6 +162,7 @@ router.patch(
   '/:id/status',
   authenticate,
   requireRole('admin'),
+  gateAdminRole('vendors'),
   vendorStatusValidator,
   validateRequest,
   vendorController.updateVendorStatus
@@ -186,6 +188,7 @@ router.put(
   '/:id',
   authenticate,
   requireRole('admin'),
+  gateAdminRole('vendors'),
   adminUpdateVendorValidator,
   validateRequest,
   vendorController.adminUpdateVendor
@@ -210,6 +213,7 @@ router.patch(
   '/:id/commission',
   authenticate,
   requireRole('admin'),
+  gateAdminRole('vendors'),
   commissionValidator,
   validateRequest,
   vendorController.updateVendorCommission
@@ -235,6 +239,7 @@ router.patch(
   '/:id/featured',
   authenticate,
   requireRole('admin'),
+  gateAdminRole('vendors'),
   vendorController.toggleVendorFeatured
 );
 

@@ -3,6 +3,9 @@ import { sequelize } from '../config/database';
 
 export type UserRole = 'admin' | 'vendor' | 'customer';
 export type UserStatus = 'active' | 'suspended';
+// Only meaningful when role === 'admin'. super_admin has unrestricted access;
+// the others are fixed permission presets enforced by the gateAdminRole middleware.
+export type AdminRole = 'super_admin' | 'orders_manager' | 'product_manager' | 'support';
 
 export interface UserAttributes {
   id: number;
@@ -12,6 +15,7 @@ export interface UserAttributes {
   phone: string | null;
   password_hash: string;
   role: UserRole;
+  admin_role: AdminRole | null;
   status: UserStatus;
   avatar_url: string | null;
   email_verified_at: Date | null;
@@ -23,7 +27,7 @@ export interface UserAttributes {
 
 export type UserCreationAttributes = Optional<
   UserAttributes,
-  | 'id' | 'last_name' | 'phone' | 'avatar_url' | 'email_verified_at' | 'status' | 'role'
+  | 'id' | 'last_name' | 'phone' | 'avatar_url' | 'email_verified_at' | 'status' | 'role' | 'admin_role'
   | 'password_reset_token_hash' | 'password_reset_expires'
 >;
 
@@ -35,6 +39,7 @@ export class User extends Model<UserAttributes, UserCreationAttributes> implemen
   public phone!: string | null;
   public password_hash!: string;
   public role!: UserRole;
+  public admin_role!: AdminRole | null;
   public status!: UserStatus;
   public avatar_url!: string | null;
   public email_verified_at!: Date | null;
@@ -53,6 +58,10 @@ User.init(
     phone: { type: DataTypes.STRING(30), allowNull: true },
     password_hash: { type: DataTypes.STRING(255), allowNull: false },
     role: { type: DataTypes.ENUM('admin', 'vendor', 'customer'), allowNull: false, defaultValue: 'customer' },
+    admin_role: {
+      type: DataTypes.ENUM('super_admin', 'orders_manager', 'product_manager', 'support'),
+      allowNull: true
+    },
     status: { type: DataTypes.ENUM('active', 'suspended'), allowNull: false, defaultValue: 'active' },
     avatar_url: { type: DataTypes.STRING(500), allowNull: true },
     email_verified_at: { type: DataTypes.DATE, allowNull: true },

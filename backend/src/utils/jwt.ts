@@ -4,6 +4,7 @@ export interface JwtPayload {
   id: number;
   role: 'admin' | 'vendor' | 'customer';
   email: string;
+  admin_role?: 'super_admin' | 'orders_manager' | 'product_manager' | 'support' | null;
 }
 
 const ACCESS_SECRET = process.env.JWT_SECRET || 'dev_secret_change_me';

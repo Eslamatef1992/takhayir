@@ -3,7 +3,7 @@ import * as couponController from '../controllers/couponController';
 import { couponValidator } from '../validators/couponValidators';
 import { validateRequest } from '../middleware/validateRequest';
 import { authenticate } from '../middleware/auth';
-import { requireRole } from '../middleware/roles';
+import { requireRole, gateAdminRole } from '../middleware/roles';
 import { body } from 'express-validator';
 
 const router = Router();
@@ -25,7 +25,7 @@ const router = Router();
  *       201: { description: Created }
  */
 router.get('/', authenticate, requireRole('admin', 'vendor'), couponController.listMyCoupons);
-router.post('/', authenticate, requireRole('admin', 'vendor'), couponValidator, validateRequest, couponController.createCoupon);
+router.post('/', authenticate, requireRole('admin', 'vendor'), gateAdminRole('coupons'), couponValidator, validateRequest, couponController.createCoupon);
 
 /**
  * @openapi
@@ -82,6 +82,6 @@ router.get('/available', authenticate, couponController.listAvailableCoupons);
  *     responses:
  *       204: { description: Deleted }
  */
-router.delete('/:id', authenticate, requireRole('admin', 'vendor'), couponController.deleteCoupon);
+router.delete('/:id', authenticate, requireRole('admin', 'vendor'), gateAdminRole('coupons'), couponController.deleteCoupon);
 
 export default router;

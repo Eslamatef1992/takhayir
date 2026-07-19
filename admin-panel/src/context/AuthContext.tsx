@@ -1,12 +1,15 @@
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 import { apiClient, ApiEnvelope } from '../api/client';
 
+export type AdminRole = 'super_admin' | 'orders_manager' | 'product_manager' | 'support';
+
 export interface AdminUser {
   id: number;
   first_name: string;
   last_name: string | null;
   email: string;
   role: 'admin' | 'vendor' | 'customer';
+  admin_role: AdminRole | null;
 }
 
 interface AuthContextValue {

@@ -18,6 +18,9 @@ import { Wishlist } from './Wishlist';
 import { Notification } from './Notification';
 import { VendorPayout } from './VendorPayout';
 import { Banner } from './Banner';
+import { VariantType } from './VariantType';
+import { VariantValue } from './VariantValue';
+import { Page } from './Page';
 
 // User <-> Vendor (1:1)
 User.hasOne(Vendor, { foreignKey: 'user_id', as: 'vendorProfile' });
@@ -124,6 +127,10 @@ Notification.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
 Vendor.hasMany(VendorPayout, { foreignKey: 'vendor_id', as: 'payouts' });
 VendorPayout.belongsTo(Vendor, { foreignKey: 'vendor_id', as: 'vendor' });
 
+// Variant types/values (admin-managed picklist used to build product variants)
+VariantType.hasMany(VariantValue, { foreignKey: 'variant_type_id', as: 'values' });
+VariantValue.belongsTo(VariantType, { foreignKey: 'variant_type_id', as: 'type' });
+
 export {
   sequelize,
   User,
@@ -144,5 +151,8 @@ export {
   Wishlist,
   Notification,
   VendorPayout,
-  Banner
+  Banner,
+  VariantType,
+  VariantValue,
+  Page
 };

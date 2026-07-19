@@ -3,7 +3,7 @@ import * as categoryController from '../controllers/categoryController';
 import { categoryValidator, updateCategoryValidator } from '../validators/categoryValidators';
 import { validateRequest } from '../middleware/validateRequest';
 import { authenticate } from '../middleware/auth';
-import { requireRole } from '../middleware/roles';
+import { requireRole, gateAdminRole } from '../middleware/roles';
 import { upload } from '../middleware/upload';
 
 const router = Router();
@@ -46,7 +46,7 @@ const router = Router();
  *       201: { description: Created }
  */
 router.get('/', categoryController.listCategories);
-router.post('/', authenticate, requireRole('admin'), categoryValidator, validateRequest, categoryController.createCategory);
+router.post('/', authenticate, requireRole('admin'), gateAdminRole('categories'), categoryValidator, validateRequest, categoryController.createCategory);
 
 /**
  * @openapi
@@ -66,7 +66,7 @@ router.post('/', authenticate, requireRole('admin'), categoryValidator, validate
  *     responses:
  *       201: { description: Image uploaded, returns { url } }
  */
-router.post('/upload', authenticate, requireRole('admin'), upload.single('image'), categoryController.uploadCategoryImage);
+router.post('/upload', authenticate, requireRole('admin'), gateAdminRole('categories'), upload.single('image'), categoryController.uploadCategoryImage);
 
 /**
  * @openapi
@@ -111,7 +111,7 @@ router.get('/:slug', categoryController.getCategory);
  *     responses:
  *       204: { description: Deleted }
  */
-router.put('/:id', authenticate, requireRole('admin'), updateCategoryValidator, validateRequest, categoryController.updateCategory);
-router.delete('/:id', authenticate, requireRole('admin'), categoryController.deleteCategory);
+router.put('/:id', authenticate, requireRole('admin'), gateAdminRole('categories'), updateCategoryValidator, validateRequest, categoryController.updateCategory);
+router.delete('/:id', authenticate, requireRole('admin'), gateAdminRole('categories'), categoryController.deleteCategory);
 
 export default router;

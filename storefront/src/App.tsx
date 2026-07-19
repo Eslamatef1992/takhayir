@@ -22,6 +22,7 @@ import AddressesPage from './pages/AddressesPage';
 import ChangePasswordPage from './pages/ChangePasswordPage';
 import CustomerCouponsPage from './pages/CustomerCouponsPage';
 import ProfilePage from './pages/ProfilePage';
+import CmsPage from './pages/CmsPage';
 
 export default function App() {
   return (
@@ -36,6 +37,7 @@ export default function App() {
               <Route path="vendors" element={<VendorsPage />} />
               <Route path="vendors/:slug" element={<ProductListPage mode="vendor" />} />
               <Route path="products/:slug" element={<ProductPage />} />
+              <Route path="pages/:slug" element={<CmsPage />} />
               <Route path="cart" element={<CartPage />} />
               <Route path="checkout" element={<CheckoutPage />} />
               <Route path="login" element={<LoginPage />} />

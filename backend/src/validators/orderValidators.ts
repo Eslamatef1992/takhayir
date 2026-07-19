@@ -28,3 +28,8 @@ export const orderStatusValidator = [
   body('status').isIn(['pending', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded']).withMessage('Invalid status'),
   body('tracking_number').optional().isString()
 ];
+
+export const adminOrderStatusValidator = [
+  body('status').optional().isIn(['pending', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded']).withMessage('Invalid status'),
+  body('payment_status').optional().isIn(['unpaid', 'paid', 'failed', 'refunded']).withMessage('Invalid payment_status')
+];

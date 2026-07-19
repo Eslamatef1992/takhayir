@@ -1008,7 +1008,7 @@ label {
 
 .footer-grid {
   display: grid;
-  grid-template-columns: 1.4fr 1fr 1fr 1fr;
+  grid-template-columns: 1.4fr 1fr 1fr 1fr 1fr;
   gap: var(--space-6);
   padding: var(--space-8) 0 var(--space-6);
   position: relative;

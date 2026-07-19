@@ -23,7 +23,7 @@ interface RegisterInput {
 }
 
 function buildAuthResponse(user: User) {
-  const payload = { id: user.id, role: user.role, email: user.email };
+  const payload = { id: user.id, role: user.role, email: user.email, admin_role: user.admin_role };
   return {
     user: {
       id: user.id,
@@ -31,6 +31,7 @@ function buildAuthResponse(user: User) {
       last_name: user.last_name,
       email: user.email,
       role: user.role,
+      admin_role: user.admin_role,
       status: user.status
     },
     accessToken: signAccessToken(payload),

@@ -3,7 +3,7 @@ import * as bannerController from '../controllers/bannerController';
 import { createBannerValidator, updateBannerValidator } from '../validators/bannerValidators';
 import { validateRequest } from '../middleware/validateRequest';
 import { authenticate } from '../middleware/auth';
-import { requireRole } from '../middleware/roles';
+import { requireRole, gateAdminRole } from '../middleware/roles';
 import { upload } from '../middleware/upload';
 
 const router = Router();
@@ -38,7 +38,7 @@ const router = Router();
  *       201: { description: Created }
  */
 router.get('/', bannerController.listActiveBanners);
-router.post('/', authenticate, requireRole('admin'), createBannerValidator, validateRequest, bannerController.createBanner);
+router.post('/', authenticate, requireRole('admin'), gateAdminRole('banners'), createBannerValidator, validateRequest, bannerController.createBanner);
 
 /**
  * @openapi
@@ -70,7 +70,7 @@ router.get('/admin/all', authenticate, requireRole('admin'), bannerController.ad
  *     responses:
  *       201: { description: Image uploaded, returns { url } }
  */
-router.post('/upload', authenticate, requireRole('admin'), upload.single('image'), bannerController.uploadBannerImage);
+router.post('/upload', authenticate, requireRole('admin'), gateAdminRole('banners'), upload.single('image'), bannerController.uploadBannerImage);
 
 /**
  * @openapi
@@ -98,7 +98,7 @@ router.post('/upload', authenticate, requireRole('admin'), upload.single('image'
  *     responses:
  *       204: { description: Deleted }
  */
-router.put('/:id', authenticate, requireRole('admin'), updateBannerValidator, validateRequest, bannerController.updateBanner);
-router.delete('/:id', authenticate, requireRole('admin'), bannerController.deleteBanner);
+router.put('/:id', authenticate, requireRole('admin'), gateAdminRole('banners'), updateBannerValidator, validateRequest, bannerController.updateBanner);
+router.delete('/:id', authenticate, requireRole('admin'), gateAdminRole('banners'), bannerController.deleteBanner);
 
 export default router;

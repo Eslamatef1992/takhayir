@@ -1,9 +1,9 @@
 import { Router } from 'express';
 import * as orderController from '../controllers/orderController';
-import { checkoutValidator, guestCheckoutValidator, orderStatusValidator } from '../validators/orderValidators';
+import { checkoutValidator, guestCheckoutValidator, orderStatusValidator, adminOrderStatusValidator } from '../validators/orderValidators';
 import { validateRequest } from '../middleware/validateRequest';
 import { authenticate } from '../middleware/auth';
-import { requireRole } from '../middleware/roles';
+import { requireRole, gateAdminRole } from '../middleware/roles';
 
 const router = Router();
 
@@ -154,6 +154,39 @@ router.get('/admin/all', authenticate, requireRole('admin'), orderController.adm
  *       200: { description: Order }
  */
 router.get('/admin/:id', authenticate, requireRole('admin'), orderController.adminGetOrder);
+
+/**
+ * @openapi
+ * /api/orders/admin/{id}/status:
+ *   patch:
+ *     tags: [Orders]
+ *     summary: Update an order's overall status and/or payment status (admin)
+ *     security: [{ bearerAuth: [] }]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               status: { type: string, enum: [pending, processing, shipped, delivered, cancelled, refunded] }
+ *               payment_status: { type: string, enum: [unpaid, paid, failed, refunded] }
+ *     responses:
+ *       200: { description: Updated }
+ */
+router.patch(
+  '/admin/:id/status',
+  authenticate,
+  requireRole('admin'),
+  gateAdminRole('orders'),
+  adminOrderStatusValidator,
+  validateRequest,
+  orderController.adminUpdateOrderStatus
+);
 
 /**
  * @openapi

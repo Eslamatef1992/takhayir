@@ -95,6 +95,17 @@ export function Footer() {
               </a>
             </div>
           </div>
+
+          <div>
+            <div className="footer-heading">Company</div>
+            <div className="footer-links">
+              <Link to="/pages/about-us">About us</Link>
+              <Link to="/pages/terms-conditions">Terms & Conditions</Link>
+              <Link to="/pages/privacy-policy">Privacy Policy</Link>
+              <Link to="/pages/faq">FAQ</Link>
+              <Link to="/pages/returns-policy">Contact & Returns</Link>
+            </div>
+          </div>
         </div>
 
         <div className="footer-bottom">

@@ -1,4 +1,4 @@
-import { sequelize, Cart, CartItem, Product, ProductVariant, Vendor, Address, Coupon, Order, OrderVendorGroup, OrderItem, Payment } from '../models';
+import { sequelize, Cart, CartItem, Product, ProductVariant, Vendor, Address, Coupon, Order, OrderVendorGroup, OrderItem, Payment, User } from '../models';
 import { ApiError } from '../utils/ApiError';
 import { generateOrderNumber } from '../utils/orderNumber';
 import { initiatePayment } from './payments';
@@ -353,10 +353,14 @@ export async function getFullOrder(orderId: number, userId?: number, role?: stri
       {
         model: OrderVendorGroup,
         as: 'vendorGroups',
-        include: [{ model: OrderItem, as: 'items' }, { model: Vendor, as: 'vendor', attributes: ['id', 'store_name', 'store_slug'] }]
+        include: [
+          { model: OrderItem, as: 'items', include: [{ model: Product, as: 'product', attributes: ['id', 'name', 'slug'] }] },
+          { model: Vendor, as: 'vendor', attributes: ['id', 'store_name', 'store_slug'] }
+        ]
       },
       { model: Payment, as: 'payments' },
-      { model: Address, as: 'shippingAddress' }
+      { model: Address, as: 'shippingAddress' },
+      { model: User, as: 'customer', attributes: ['id', 'first_name', 'last_name', 'email', 'phone'] }
     ]
   });
 

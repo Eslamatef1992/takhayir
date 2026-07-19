@@ -1,19 +1,24 @@
 import { NavLink, Outlet } from 'react-router-dom';
 import { Logo } from './Logo';
 import { useAuth } from '../context/AuthContext';
+import { canView, PermissionArea } from '../utils/permissions';
 
-const navItems = [
+const navItems: { to: string; label: string; end?: boolean; area?: PermissionArea }[] = [
   { to: '/', label: 'Dashboard', end: true },
-  { to: '/vendors', label: 'Vendors' },
-  { to: '/categories', label: 'Categories' },
-  { to: '/products', label: 'Products' },
-  { to: '/orders', label: 'Orders' },
-  { to: '/coupons', label: 'Coupons' },
-  { to: '/banners', label: 'Banners' }
+  { to: '/vendors', label: 'Vendors', area: 'vendors' },
+  { to: '/categories', label: 'Categories', area: 'categories' },
+  { to: '/products', label: 'Products', area: 'products' },
+  { to: '/variants', label: 'Variants', area: 'variants' },
+  { to: '/orders', label: 'Orders', area: 'orders' },
+  { to: '/coupons', label: 'Coupons', area: 'coupons' },
+  { to: '/banners', label: 'Banners', area: 'banners' },
+  { to: '/content', label: 'Content Pages', area: 'cms' },
+  { to: '/admins', label: 'Admins', area: 'admins' }
 ];
 
 export function Layout() {
   const { user, logout } = useAuth();
+  const visibleNavItems = navItems.filter((item) => !item.area || canView(user?.admin_role, item.area));
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
@@ -23,7 +28,7 @@ export function Layout() {
           <div className="text-muted" style={{ fontSize: 11, marginTop: 4 }}>Admin Panel</div>
         </div>
         <nav style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          {navItems.map((item) => (
+          {visibleNavItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
