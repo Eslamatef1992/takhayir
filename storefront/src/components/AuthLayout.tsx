@@ -23,7 +23,7 @@ export function AuthLayout({ title, subtitle, children, footer }: AuthLayoutProp
         <div className="auth-brand-glow auth-brand-glow-2" />
         <div className="auth-brand-content">
           <div className="auth-logo-animated">
-            <Logo size={56} />
+            <Logo size={64} variant="onDark" />
           </div>
           <h2 className="auth-brand-title">One cart. Every store in Kuwait.</h2>
           <p className="auth-brand-sub">

@@ -33,28 +33,10 @@
         pointer-events: none;
       }
       .loader-mark {
-        position: relative;
-        width: 64px;
-        height: 64px;
-      }
-      .loader-ring {
-        position: absolute;
-        inset: 0;
-        border-radius: 50%;
-        border: 3px solid rgba(106, 44, 224, 0.12);
-        border-top-color: #f9622c;
-        border-right-color: #d6247a;
-        animation: loader-spin 0.9s linear infinite;
-      }
-      .loader-dot {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 22px;
-        height: 22px;
-        margin: -11px 0 0 -11px;
-        border-radius: 7px;
-        background: linear-gradient(135deg, #f9622c, #d6247a 55%, #6a2ce0);
+        width: 68px;
+        height: auto;
+        animation: loader-pulse 1.3s ease-in-out infinite;
+        filter: drop-shadow(0 6px 18px rgba(106, 44, 224, 0.3));
       }
       .loader-word {
         font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
@@ -66,19 +48,21 @@
         background-clip: text;
         color: transparent;
       }
-      @keyframes loader-spin {
-        to {
-          transform: rotate(360deg);
+      @keyframes loader-pulse {
+        0%, 100% {
+          transform: scale(1);
+          opacity: 1;
+        }
+        50% {
+          transform: scale(1.08);
+          opacity: 0.82;
         }
       }
     </style>
   </head>
   <body>
     <div id="app-loader">
-      <div class="loader-mark">
-        <span class="loader-ring"></span>
-        <span class="loader-dot"></span>
-      </div>
+      <img src="/favicon.svg" alt="Takhayir" class="loader-mark" />
       <span class="loader-word">Takhayir</span>
     </div>
     <div id="root"></div>
