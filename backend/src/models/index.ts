@@ -133,8 +133,10 @@ VariantType.hasMany(VariantValue, { foreignKey: 'variant_type_id', as: 'values' 
 VariantValue.belongsTo(VariantType, { foreignKey: 'variant_type_id', as: 'type' });
 
 // Vendor <-> Category (many-to-many): which categories a vendor is allowed to sell in.
+// Note: Category already has a 'vendors' alias from the legacy hasMany (single category_id) association
+// above, so this reverse belongsToMany must use a different alias to avoid a Sequelize alias collision.
 Vendor.belongsToMany(Category, { through: VendorCategory, foreignKey: 'vendor_id', otherKey: 'category_id', as: 'categories' });
-Category.belongsToMany(Vendor, { through: VendorCategory, foreignKey: 'category_id', otherKey: 'vendor_id', as: 'vendors' });
+Category.belongsToMany(Vendor, { through: VendorCategory, foreignKey: 'category_id', otherKey: 'vendor_id', as: 'assignedVendors' });
 
 export {
   sequelize,
