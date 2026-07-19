@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { apiClient, ApiEnvelope } from '../api/client';
+import { KUWAIT_AREAS, KUWAIT_GOVERNORATES } from '../data/kuwaitAreas';
 
 interface Address {
   id: number;
@@ -19,7 +20,7 @@ const emptyForm = {
   label: '',
   full_name: '',
   phone: '',
-  country: '',
+  country: 'Kuwait',
   city: '',
   area: '',
   street: '',
@@ -60,7 +61,7 @@ export default function AddressesPage() {
       label: a.label || '',
       full_name: a.full_name,
       phone: a.phone,
-      country: a.country,
+      country: 'Kuwait',
       city: a.city,
       area: a.area || '',
       street: a.street || '',
@@ -153,16 +154,40 @@ export default function AddressesPage() {
             </div>
             <div className="form-group">
               <label>Country</label>
-              <input value={form.country} onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))} required />
+              <input value="Kuwait" disabled />
             </div>
 
             <div className="form-group">
               <label>City</label>
-              <input value={form.city} onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))} required />
+              <select
+                value={form.city}
+                onChange={(e) => setForm((f) => ({ ...f, city: e.target.value, area: '' }))}
+                required
+              >
+                <option value="" disabled>
+                  Select city
+                </option>
+                {KUWAIT_GOVERNORATES.map((g) => (
+                  <option key={g} value={g}>
+                    {g}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="form-group">
               <label>Area</label>
-              <input value={form.area} onChange={(e) => setForm((f) => ({ ...f, area: e.target.value }))} />
+              <select
+                value={form.area}
+                onChange={(e) => setForm((f) => ({ ...f, area: e.target.value }))}
+                disabled={!form.city}
+              >
+                <option value="">Select area</option>
+                {(KUWAIT_AREAS[form.city] || []).map((a) => (
+                  <option key={a} value={a}>
+                    {a}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="form-group">

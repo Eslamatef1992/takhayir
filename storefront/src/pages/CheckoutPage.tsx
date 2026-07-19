@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient, ApiEnvelope } from '../api/client';
 import { useCart } from '../context/CartContext';
+import { KUWAIT_AREAS, KUWAIT_GOVERNORATES } from '../data/kuwaitAreas';
 
 interface Address {
   id: number;
@@ -30,7 +31,7 @@ export default function CheckoutPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  const [newAddress, setNewAddress] = useState({ full_name: '', phone: '', country: 'Saudi Arabia', city: '', street: '' });
+  const [newAddress, setNewAddress] = useState({ full_name: '', phone: '', country: 'Kuwait', city: '', area: '', street: '' });
   const [showNewAddress, setShowNewAddress] = useState(false);
 
   useEffect(() => {
@@ -110,7 +111,34 @@ export default function CheckoutPage() {
               </div>
               <div className="form-group">
                 <label>City</label>
-                <input value={newAddress.city} onChange={(e) => setNewAddress({ ...newAddress, city: e.target.value })} />
+                <select
+                  value={newAddress.city}
+                  onChange={(e) => setNewAddress({ ...newAddress, city: e.target.value, area: '' })}
+                >
+                  <option value="" disabled>
+                    Select city
+                  </option>
+                  {KUWAIT_GOVERNORATES.map((g) => (
+                    <option key={g} value={g}>
+                      {g}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Area</label>
+                <select
+                  value={newAddress.area}
+                  onChange={(e) => setNewAddress({ ...newAddress, area: e.target.value })}
+                  disabled={!newAddress.city}
+                >
+                  <option value="">Select area</option>
+                  {(KUWAIT_AREAS[newAddress.city] || []).map((a) => (
+                    <option key={a} value={a}>
+                      {a}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div className="form-group">
                 <label>Street / building</label>
