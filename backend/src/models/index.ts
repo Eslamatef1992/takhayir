@@ -21,6 +21,7 @@ import { Banner } from './Banner';
 import { VariantType } from './VariantType';
 import { VariantValue } from './VariantValue';
 import { Page } from './Page';
+import { VendorCategory } from './VendorCategory';
 
 // User <-> Vendor (1:1)
 User.hasOne(Vendor, { foreignKey: 'user_id', as: 'vendorProfile' });
@@ -131,6 +132,10 @@ VendorPayout.belongsTo(Vendor, { foreignKey: 'vendor_id', as: 'vendor' });
 VariantType.hasMany(VariantValue, { foreignKey: 'variant_type_id', as: 'values' });
 VariantValue.belongsTo(VariantType, { foreignKey: 'variant_type_id', as: 'type' });
 
+// Vendor <-> Category (many-to-many): which categories a vendor is allowed to sell in.
+Vendor.belongsToMany(Category, { through: VendorCategory, foreignKey: 'vendor_id', otherKey: 'category_id', as: 'categories' });
+Category.belongsToMany(Vendor, { through: VendorCategory, foreignKey: 'category_id', otherKey: 'vendor_id', as: 'vendors' });
+
 export {
   sequelize,
   User,
@@ -154,5 +159,6 @@ export {
   Banner,
   VariantType,
   VariantValue,
-  Page
+  Page,
+  VendorCategory
 };

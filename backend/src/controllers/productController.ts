@@ -4,7 +4,21 @@ import { catchAsync } from '../utils/catchAsync';
 import { ApiError } from '../utils/ApiError';
 import { getPagination, buildMeta } from '../utils/pagination';
 import { uniqueSlug } from '../utils/slugify';
-import { Product, ProductImage, ProductVariant, Vendor, Category } from '../models';
+import { Product, ProductImage, ProductVariant, Vendor, Category, VendorCategory } from '../models';
+
+// If a vendor has been assigned specific categories by an admin, their
+// products must stay within that set. A vendor with no assignments yet is
+// left unrestricted, so existing stores aren't blocked before an admin gets
+// around to categorizing them.
+async function assertCategoryAllowed(vendorId: number, categoryId: number | null | undefined) {
+  if (!categoryId) return;
+  const assigned = await VendorCategory.findAll({ where: { vendor_id: vendorId }, attributes: ['category_id'] });
+  if (assigned.length === 0) return;
+  const allowedIds = new Set(assigned.map((a) => a.category_id));
+  if (!allowedIds.has(Number(categoryId))) {
+    throw ApiError.forbidden('You can only add products in the categories assigned to your store');
+  }
+}
 
 // IMPORTANT: this must be a factory, not a shared array. Sequelize include objects
 // are mutated in-place below (e.g. adding a `where` clause for category/vendor
@@ -94,6 +108,8 @@ export const createProduct = catchAsync(async (req: Request, res: Response) => {
 
   const { name, description, sku, category_id, price, compare_at_price, stock_quantity, weight_kg, images, variants, attributes } = req.body;
 
+  await assertCategoryAllowed(vendor.id, category_id);
+
   const slug = await uniqueSlug(name, (s) => Product.findOne({ where: { slug: s } }));
 
   const product = await Product.create({
@@ -151,6 +167,10 @@ export const updateMyProduct = catchAsync(async (req: Request, res: Response) =>
   const product = await assertOwnedProduct(Number(req.params.id), req.user!.id);
 
   const { name, description, sku, category_id, price, compare_at_price, stock_quantity, weight_kg, attributes, variants } = req.body;
+
+  if (category_id !== undefined && category_id !== product.category_id) {
+    await assertCategoryAllowed(product.vendor_id, category_id);
+  }
 
   if (name && name !== product.name) {
     product.slug = await uniqueSlug(name, (s) => Product.findOne({ where: { slug: s, id: { [Op.ne]: product.id } } }));

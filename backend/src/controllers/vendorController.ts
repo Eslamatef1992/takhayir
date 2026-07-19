@@ -5,7 +5,16 @@ import { catchAsync } from '../utils/catchAsync';
 import { ApiError } from '../utils/ApiError';
 import { getPagination, buildMeta } from '../utils/pagination';
 import { uniqueSlug } from '../utils/slugify';
-import { Vendor, User } from '../models';
+import { Vendor, User, Category, VendorCategory } from '../models';
+
+const categoriesInclude = () => ({ model: Category, as: 'categories' as const, attributes: ['id', 'name', 'slug'], through: { attributes: [] } });
+
+async function setVendorCategories(vendorId: number, categoryIds: number[]) {
+  await VendorCategory.destroy({ where: { vendor_id: vendorId } });
+  if (categoryIds.length) {
+    await VendorCategory.bulkCreate(categoryIds.map((category_id) => ({ vendor_id: vendorId, category_id })));
+  }
+}
 
 export const listVendors = catchAsync(async (req: Request, res: Response) => {
   const { page, limit, offset } = getPagination(req);
@@ -36,7 +45,10 @@ export const getVendorBySlug = catchAsync(async (req: Request, res: Response) =>
 });
 
 export const getMyVendorProfile = catchAsync(async (req: Request, res: Response) => {
-  const vendor = await Vendor.findOne({ where: { user_id: req.user!.id }, include: [{ model: User, as: 'user', attributes: { exclude: ['password_hash'] } }] });
+  const vendor = await Vendor.findOne({
+    where: { user_id: req.user!.id },
+    include: [{ model: User, as: 'user', attributes: { exclude: ['password_hash'] } }, categoriesInclude()]
+  });
   if (!vendor) throw ApiError.notFound('Vendor profile not found');
   res.json({ success: true, data: vendor });
 });
@@ -77,7 +89,8 @@ export const adminListVendors = catchAsync(async (req: Request, res: Response) =
     limit,
     offset,
     order: [['created_at', 'DESC']],
-    include: [{ model: User, as: 'user', attributes: { exclude: ['password_hash'] } }]
+    distinct: true,
+    include: [{ model: User, as: 'user', attributes: { exclude: ['password_hash'] } }, categoriesInclude()]
   });
 
   res.json({ success: true, data: rows, meta: buildMeta(count, page, limit) });
@@ -131,6 +144,7 @@ export const adminCreateVendor = catchAsync(async (req: Request, res: Response) 
     store_name_ar,
     iban,
     category_id,
+    category_ids,
     business_license_url,
     store_logo,
     is_featured,
@@ -167,7 +181,7 @@ export const adminCreateVendor = catchAsync(async (req: Request, res: Response) 
     tax_number: null,
     registration_number: null,
     business_license_url: business_license_url ?? null,
-    category_id: category_id ?? null,
+    category_id: category_id ?? (Array.isArray(category_ids) && category_ids[0]) ?? null,
     iban: iban ?? null,
     commission_rate: commission_rate ?? 10.0,
     status: 'approved',
@@ -176,10 +190,16 @@ export const adminCreateVendor = catchAsync(async (req: Request, res: Response) 
     is_featured: is_featured ?? false
   });
 
+  if (Array.isArray(category_ids)) {
+    await setVendorCategories(vendor.id, category_ids.map(Number));
+  }
+
+  const created = await Vendor.findByPk(vendor.id, { include: [categoriesInclude()] });
+
   res.status(201).json({
     success: true,
     data: {
-      ...vendor.toJSON(),
+      ...created!.toJSON(),
       user: { id: user.id, first_name: user.first_name, email: user.email }
     }
   });
@@ -200,6 +220,7 @@ export const adminUpdateVendor = catchAsync(async (req: Request, res: Response) 
     registration_number,
     iban,
     category_id,
+    category_ids,
     business_license_url,
     store_logo,
     is_featured,
@@ -230,8 +251,12 @@ export const adminUpdateVendor = catchAsync(async (req: Request, res: Response) 
     await User.update({ first_name: owner_name }, { where: { id: vendor.user_id } });
   }
 
+  if (Array.isArray(category_ids)) {
+    await setVendorCategories(vendor.id, category_ids.map(Number));
+  }
+
   const updated = await Vendor.findByPk(vendor.id, {
-    include: [{ model: User, as: 'user', attributes: { exclude: ['password_hash'] } }]
+    include: [{ model: User, as: 'user', attributes: { exclude: ['password_hash'] } }, categoriesInclude()]
   });
   res.json({ success: true, data: updated });
 });

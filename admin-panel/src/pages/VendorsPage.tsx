@@ -8,7 +8,7 @@ interface Vendor {
   store_slug: string;
   store_logo: string | null;
   iban: string | null;
-  category_id: number | null;
+  categories?: { id: number; name: string }[];
   business_license_url: string | null;
   status: 'pending' | 'approved' | 'suspended' | 'rejected';
   commission_rate: string;
@@ -31,7 +31,7 @@ const emptyForm = {
   store_name: '',
   store_name_ar: '',
   iban: '',
-  category_id: '',
+  category_ids: [] as string[],
   commission_rate: '10',
   is_featured: false,
   store_logo: '',
@@ -143,7 +143,7 @@ export default function VendorsPage() {
       store_name: v.store_name,
       store_name_ar: v.store_name_ar || '',
       iban: v.iban || '',
-      category_id: v.category_id ? String(v.category_id) : '',
+      category_ids: (v.categories || []).map((c) => String(c.id)),
       commission_rate: v.commission_rate,
       is_featured: v.is_featured,
       store_logo: v.store_logo || '',
@@ -151,6 +151,14 @@ export default function VendorsPage() {
     });
     setFormError('');
     setShowForm(true);
+  }
+
+  function toggleCategoryId(id: number) {
+    const key = String(id);
+    setForm((f) => ({
+      ...f,
+      category_ids: f.category_ids.includes(key) ? f.category_ids.filter((c) => c !== key) : [...f.category_ids, key]
+    }));
   }
 
   function closeForm() {
@@ -170,7 +178,7 @@ export default function VendorsPage() {
         store_name: form.store_name,
         store_name_ar: form.store_name_ar || null,
         iban: form.iban || null,
-        category_id: form.category_id ? Number(form.category_id) : null,
+        category_ids: form.category_ids.map(Number),
         commission_rate: form.commission_rate ? Number(form.commission_rate) : 10,
         is_featured: form.is_featured,
         store_logo: form.store_logo || null,
@@ -282,20 +290,27 @@ export default function VendorsPage() {
               />
             </div>
 
-            <div className="form-group">
-              <label>Category</label>
-              <select
-                value={form.category_id}
-                onChange={(e) => setForm((f) => ({ ...f, category_id: e.target.value }))}
-              >
-                <option value="">— Select category —</option>
-                {categories.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.parent_id ? '— ' : ''}
-                    {c.name}
-                  </option>
-                ))}
-              </select>
+            <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+              <label>Categories this vendor can sell in</label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {categories.map((c) => {
+                  const active = form.category_ids.includes(String(c.id));
+                  return (
+                    <button
+                      type="button"
+                      key={c.id}
+                      onClick={() => toggleCategoryId(c.id)}
+                      className={active ? 'btn btn-primary' : 'btn btn-outline'}
+                      style={{ padding: '5px 12px', fontSize: 12 }}
+                    >
+                      {c.parent_id ? '— ' : ''}{c.name}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="text-muted" style={{ fontSize: 11.5, marginTop: 6 }}>
+                Leave empty to let this vendor add products in any category.
+              </p>
             </div>
             <div className="form-group">
               <label>Commission (%)</label>
@@ -371,6 +386,7 @@ export default function VendorsPage() {
               <tr>
                 <th>Store</th>
                 <th>Owner</th>
+                <th>Categories</th>
                 <th>Status</th>
                 <th>Commission</th>
                 <th>Featured</th>
@@ -382,6 +398,14 @@ export default function VendorsPage() {
                 <tr key={v.id}>
                   <td>{v.store_name}</td>
                   <td>{v.user?.email}</td>
+                  <td>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                      {(v.categories || []).map((c) => (
+                        <span key={c.id} className="filter-chip" style={{ fontSize: 11, padding: '2px 8px' }}>{c.name}</span>
+                      ))}
+                      {(!v.categories || v.categories.length === 0) && <span className="text-muted" style={{ fontSize: 12 }}>Any</span>}
+                    </div>
+                  </td>
                   <td><span className={`badge badge-${v.status}`}>{v.status}</span></td>
                   <td>
                     {v.commission_rate}%{' '}
@@ -413,7 +437,7 @@ export default function VendorsPage() {
               ))}
               {vendors.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="text-muted">No vendors found.</td>
+                  <td colSpan={7} className="text-muted">No vendors found.</td>
                 </tr>
               )}
             </tbody>

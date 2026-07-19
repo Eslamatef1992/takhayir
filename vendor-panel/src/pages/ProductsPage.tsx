@@ -34,6 +34,7 @@ const API_ORIGIN = (import.meta.env.VITE_API_URL || 'http://localhost:4000/api')
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [categoriesRestricted, setCategoriesRestricted] = useState(false);
   const [variantTypes, setVariantTypes] = useState<VariantType[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -58,7 +59,17 @@ export default function ProductsPage() {
 
   useEffect(() => {
     load();
-    apiClient.get<ApiEnvelope<Category[]>>('/categories', { params: { flat: true } }).then((res) => setCategories(res.data.data));
+    // If the admin has assigned this store specific categories, only offer those
+    // when adding a product. Otherwise fall back to the full category list.
+    apiClient.get<ApiEnvelope<{ categories?: Category[] }>>('/vendors/me').then((res) => {
+      const assigned = res.data.data.categories || [];
+      if (assigned.length > 0) {
+        setCategories(assigned);
+        setCategoriesRestricted(true);
+      } else {
+        apiClient.get<ApiEnvelope<Category[]>>('/categories', { params: { flat: true } }).then((r) => setCategories(r.data.data));
+      }
+    });
     apiClient.get<ApiEnvelope<VariantType[]>>('/variant-types').then((res) => setVariantTypes(res.data.data)).catch(() => {});
   }, []);
 
@@ -156,6 +167,11 @@ export default function ProductsPage() {
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
               </select>
+              {categoriesRestricted && (
+                <p className="text-muted" style={{ fontSize: 11.5, marginTop: 6 }}>
+                  Showing only the categories your store is approved to sell in.
+                </p>
+              )}
             </div>
             <div className="form-group">
               <label>Price (KWD)</label>
