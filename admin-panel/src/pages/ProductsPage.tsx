@@ -50,6 +50,7 @@ export default function ProductsPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [filter, setFilter] = useState('');
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
 
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -68,9 +69,11 @@ export default function ProductsPage() {
 
   function load() {
     setLoading(true);
+    setLoadError('');
     apiClient
       .get<ApiEnvelope<Product[]>>('/products/admin/all', { params: filter ? { status: filter } : {} })
       .then((res) => setProducts(res.data.data))
+      .catch((err) => setLoadError(err?.response?.data?.message || 'Could not load products.'))
       .finally(() => setLoading(false));
   }
 
@@ -351,6 +354,10 @@ export default function ProductsPage() {
 
       {loading ? (
         <div className="spinner">Loading...</div>
+      ) : loadError ? (
+        <div className="card" style={{ padding: 20 }}>
+          <p className="error-text" style={{ margin: 0 }}>{loadError}</p>
+        </div>
       ) : (
         <div className="card" style={{ overflow: 'auto' }}>
           <table>

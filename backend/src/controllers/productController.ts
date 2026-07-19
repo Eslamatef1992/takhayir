@@ -6,12 +6,18 @@ import { getPagination, buildMeta } from '../utils/pagination';
 import { uniqueSlug } from '../utils/slugify';
 import { Product, ProductImage, ProductVariant, Vendor, Category } from '../models';
 
-const publicIncludes = [
-  { model: ProductImage, as: 'images' },
-  { model: ProductVariant, as: 'variants' },
-  { model: Vendor, as: 'vendor', attributes: ['id', 'store_name', 'store_slug', 'store_logo', 'status'] },
-  { model: Category, as: 'category', attributes: ['id', 'name', 'slug'] }
-];
+// IMPORTANT: this must be a factory, not a shared array. Sequelize include objects
+// are mutated in-place below (e.g. adding a `where` clause for category/vendor
+// filters), and a module-level shared array would leak those mutations across
+// unrelated requests for the lifetime of the process.
+function publicIncludes() {
+  return [
+    { model: ProductImage, as: 'images' },
+    { model: ProductVariant, as: 'variants' },
+    { model: Vendor, as: 'vendor', attributes: ['id', 'store_name', 'store_slug', 'store_logo', 'status'] },
+    { model: Category, as: 'category', attributes: ['id', 'name', 'slug'] }
+  ];
+}
 
 // Public: browse/search active products
 export const listProducts = catchAsync(async (req: Request, res: Response) => {
@@ -27,7 +33,7 @@ export const listProducts = catchAsync(async (req: Request, res: Response) => {
     if (maxPrice) where.price[Op.lte] = Number(maxPrice);
   }
 
-  const include = [...publicIncludes];
+  const include = publicIncludes();
   if (category) {
     (include[3] as any).where = { slug: category };
   }
@@ -53,7 +59,7 @@ export const listProducts = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const getProductBySlug = catchAsync(async (req: Request, res: Response) => {
-  const product = await Product.findOne({ where: { slug: req.params.slug }, include: publicIncludes });
+  const product = await Product.findOne({ where: { slug: req.params.slug }, include: publicIncludes() });
   if (!product) throw ApiError.notFound('Product not found');
   res.json({ success: true, data: product });
 });
@@ -129,7 +135,7 @@ export const createProduct = catchAsync(async (req: Request, res: Response) => {
     );
   }
 
-  const created = await Product.findByPk(product.id, { include: publicIncludes });
+  const created = await Product.findByPk(product.id, { include: publicIncludes() });
   res.status(201).json({ success: true, data: created });
 });
 
@@ -161,7 +167,7 @@ export const updateMyProduct = catchAsync(async (req: Request, res: Response) =>
   if (attributes !== undefined) product.attributes = attributes;
 
   await product.save();
-  const updated = await Product.findByPk(product.id, { include: publicIncludes });
+  const updated = await Product.findByPk(product.id, { include: publicIncludes() });
   res.json({ success: true, data: updated });
 });
 
@@ -195,7 +201,7 @@ export const adminListProducts = catchAsync(async (req: Request, res: Response) 
 
   const { rows, count } = await Product.findAndCountAll({
     where,
-    include: publicIncludes,
+    include: publicIncludes(),
     limit,
     offset,
     order: [['created_at', 'DESC']],
@@ -279,7 +285,7 @@ export const adminCreateProduct = catchAsync(async (req: Request, res: Response)
     );
   }
 
-  const created = await Product.findByPk(product.id, { include: publicIncludes });
+  const created = await Product.findByPk(product.id, { include: publicIncludes() });
   res.status(201).json({ success: true, data: created });
 });
 
@@ -310,7 +316,7 @@ export const adminUpdateProduct = catchAsync(async (req: Request, res: Response)
   }
 
   await product.save();
-  const updated = await Product.findByPk(product.id, { include: publicIncludes });
+  const updated = await Product.findByPk(product.id, { include: publicIncludes() });
   res.json({ success: true, data: updated });
 });
 
