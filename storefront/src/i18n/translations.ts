@@ -174,5 +174,18 @@ export const translations: Record<string, string> = {
     'أزياء وإلكترونيات ولوازم منزلية والمزيد — كل ذلك في سوق واحد، سلة واحدة، وعملية دفع واحدة.',
   'Shop now': 'تسوق الآن',
   'Explore stores': 'استكشف المتاجر',
-  'Special offer': 'عرض خاص'
+  'Special offer': 'عرض خاص',
+
+  // Product list filters
+  Category: 'القسم',
+  Store: 'المتجر',
+  'Search results for': 'نتائج البحث عن',
+  Subcategories: 'الأقسام الفرعية',
+  'All Categories': 'كل الأقسام',
+  Min: 'الأدنى',
+  Max: 'الأقصى',
+  'Clear all': 'مسح الكل',
+  'results found': 'نتيجة',
+  Newest: 'الأحدث',
+  'Top Rated': 'الأعلى تقييماً'
 };

@@ -278,6 +278,88 @@ label {
 @media (max-width: 860px) { .category-tile-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 520px) { .category-tile-grid { grid-template-columns: 1fr; gap: var(--space-4); } }
 
+/* ---------- Product list: left filter sidebar ---------- */
+
+.plp-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+
+.plp-result-count { font-size: 13px; color: var(--text-muted); white-space: nowrap; }
+
+.plp-layout {
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  gap: var(--space-6);
+  align-items: start;
+}
+@media (max-width: 860px) {
+  .plp-layout { grid-template-columns: 1fr; }
+}
+
+.plp-sidebar { position: sticky; top: var(--space-5); }
+@media (max-width: 860px) {
+  .plp-sidebar { display: none; position: static; }
+  .plp-sidebar.open { display: block; margin-bottom: var(--space-5); }
+}
+
+.plp-filter-card { padding: var(--space-5); }
+
+.plp-filter-section {
+  padding: var(--space-4) 0;
+  border-bottom: 1px solid var(--border-color);
+}
+.plp-filter-section:first-of-type { padding-top: var(--space-4); }
+.plp-filter-section:last-child { border-bottom: none; padding-bottom: 0; }
+
+.plp-filter-title {
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-main);
+  margin-bottom: 10px;
+}
+
+.plp-filter-option {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  padding: 6px 0;
+  font-size: 13.5px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+.plp-filter-option:hover { color: var(--text-main); }
+.plp-filter-option.active { color: var(--brand-purple); font-weight: 700; }
+
+.plp-price-row { display: flex; align-items: center; gap: 8px; }
+.plp-price-row input { padding: 9px 10px; font-size: 13px; }
+
+.plp-clear-btn {
+  background: none;
+  border: none;
+  color: var(--brand-magenta);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+}
+
+.plp-mobile-filter-toggle { display: none; }
+@media (max-width: 860px) {
+  .plp-mobile-filter-toggle { display: inline-flex; }
+}
+
+[dir='rtl'] .plp-filter-option { text-align: right; }
+
 .category-tile {
   position: relative;
   display: block;
