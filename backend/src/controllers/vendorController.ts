@@ -7,7 +7,7 @@ import { getPagination, buildMeta } from '../utils/pagination';
 import { uniqueSlug } from '../utils/slugify';
 import { Vendor, User, Category, VendorCategory } from '../models';
 
-const categoriesInclude = () => ({ model: Category, as: 'categories' as const, attributes: ['id', 'name', 'slug'], through: { attributes: [] } });
+const categoriesInclude = () => ({ model: Category, as: 'categories' as const, attributes: ['id', 'name', 'name_ar', 'slug', 'parent_id'], through: { attributes: [] } });
 
 async function setVendorCategories(vendorId: number, categoryIds: number[]) {
   await VendorCategory.destroy({ where: { vendor_id: vendorId } });
@@ -39,7 +39,7 @@ export const listVendors = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const getVendorBySlug = catchAsync(async (req: Request, res: Response) => {
-  const vendor = await Vendor.findOne({ where: { store_slug: req.params.slug } });
+  const vendor = await Vendor.findOne({ where: { store_slug: req.params.slug }, include: [categoriesInclude()] });
   if (!vendor) throw ApiError.notFound('Store not found');
   res.json({ success: true, data: vendor });
 });

@@ -49,8 +49,9 @@ export default function ProductListPage({ mode }: { mode: 'category' | 'search' 
     setMaxPriceInput(maxPriceParam);
   }, [minPriceParam, maxPriceParam]);
 
-  // Category options for the sidebar: full top-level list on search/vendor pages,
-  // the current category's own children (if any) when browsing a category.
+  // Category options for the sidebar: on a store page, only the categories that
+  // store actually sells in; on search, the full top-level site list; when
+  // browsing a category, that category's own subcategories (if any).
   useEffect(() => {
     if (mode === 'category') {
       if (!params.slug) return;
@@ -58,6 +59,23 @@ export default function ProductListPage({ mode }: { mode: 'category' | 'search' 
         .get<ApiEnvelope<CategoryDetail>>(`/categories/${params.slug}`)
         .then((res) => setCurrentCategory(res.data.data))
         .catch(() => setCurrentCategory(null));
+    } else if (mode === 'vendor') {
+      if (!params.slug) return;
+      apiClient
+        .get<ApiEnvelope<{ categories?: Category[] }>>(`/vendors/${params.slug}`)
+        .then((res) => {
+          const storeCategories = res.data.data.categories || [];
+          if (storeCategories.length > 0) {
+            setTopCategories(storeCategories);
+          } else {
+            // Store has no admin-assigned categories yet — fall back to the full list.
+            apiClient
+              .get<ApiEnvelope<Category[]>>('/categories', { params: { flat: true } })
+              .then((r) => setTopCategories(r.data.data.filter((c) => !c.parent_id)))
+              .catch(() => undefined);
+          }
+        })
+        .catch(() => undefined);
     } else {
       apiClient
         .get<ApiEnvelope<Category[]>>('/categories', { params: { flat: true } })
